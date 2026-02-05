@@ -1,16 +1,27 @@
 package com.shaeed.ludo.ui.screen.about
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shaeed.ludo.BuildConfig
@@ -74,6 +85,8 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val context = LocalContext.current
+
             // About Developer Section
             Text(
                 text = "About the Developer",
@@ -88,16 +101,160 @@ fun AboutScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "Created by Shaeed",
-                        fontWeight = FontWeight.Medium
+                        text = "Created by Shaeed Khan",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "This Ludo app was built with love using Kotlin and Jetpack Compose. " +
-                                "It features AI opponents, customizable rules, and a clean Material Design 3 interface.",
+                                "It features AI opponents, customizable rules, and a clean Material Design 3 interface. " +
+                                "This app is open source and free to use.",
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Email
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("mailto:shaeed.dev@gmail.com")
+                                }
+                                context.startActivity(intent)
+                            }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Email,
+                            contentDescription = "Email",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "shaeed.dev@gmail.com",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+
+                    // LinkedIn
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    data = Uri.parse("https://www.linkedin.com/in/shaeed-khan-82941640/")
+                                }
+                                context.startActivity(intent)
+                            }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Person,
+                            contentDescription = "LinkedIn",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "LinkedIn Profile",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Support / Donation Section
+            Text(
+                text = "Support the Project",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Favorite,
+                            contentDescription = "Donate",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Buy me a coffee!",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "This app is open source and free to use. If you enjoy playing and would like to support its development, " +
+                                "consider making a small donation. Every contribution helps!",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // UPI Section
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "UPI ID",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "shaeed@pingpay",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("UPI ID", "shaeed@pingpay")
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "UPI ID copied to clipboard", Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Text("Copy UPI ID")
+                            }
+                        }
+                    }
                 }
             }
 
