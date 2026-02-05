@@ -7,7 +7,7 @@ class GameEngine(
     private val config: GameConfig
 ) {
     private val ruleSet: RuleSet = StandardRuleSet(config)
-    private val pathCalculator = PathCalculator(layout)
+    val pathCalculator = PathCalculator(layout)
     val moveValidator = MoveValidator(layout, ruleSet, pathCalculator)
 
     fun createInitialState(): GameState {
@@ -53,12 +53,42 @@ class GameEngine(
         if (legalMoves.isEmpty()) {
             return if (value == 6 && ruleSet.grantsExtraTurn(value, state.consecutiveSixes, config.maxConsecutiveSixes)) {
                 newState.copy(phase = GamePhase.WAITING_FOR_ROLL)
+            } else if (config.passDiceToNextPlayer) {
+                // Pass the dice to next player as a gifted dice
+                advanceToNextPlayerWithGiftedDice(newState, dice)
             } else {
                 advanceToNextPlayer(newState)
             }
         }
 
         return newState
+    }
+
+    /**
+     * Apply the gifted dice - used when next player receives a dice value from previous player.
+     * Returns the state with dice set and phase as WAITING_FOR_MOVE.
+     * Note: The caller should have already verified this player can use the dice.
+     */
+    fun applyGiftedDice(state: GameState): GameState {
+        val giftedDice = state.giftedDice ?: return state
+
+        return state.copy(
+            dice = giftedDice,
+            giftedDice = null,
+            phase = GamePhase.WAITING_FOR_MOVE
+        )
+    }
+
+    /**
+     * Check if a player can use a given dice value.
+     */
+    fun canPlayerUseDice(state: GameState, playerIndex: Int, diceValue: Int): Boolean {
+        val testState = state.copy(
+            currentPlayerIndex = playerIndex,
+            dice = DiceResult(diceValue),
+            phase = GamePhase.WAITING_FOR_MOVE
+        )
+        return moveValidator.computeLegalMoves(testState).isNotEmpty()
     }
 
     fun executeMove(state: GameState, move: Move): GameState {
@@ -127,6 +157,47 @@ class GameEngine(
             dice = null,
             consecutiveSixes = 0
         )
+    }
+
+    private fun advanceToNextPlayerWithGiftedDice(state: GameState, giftedDice: DiceResult): GameState {
+        val originalPlayerIndex = state.currentPlayerIndex
+        val playerCount = state.players.size
+
+        // Try each subsequent player to see if they can use the gifted dice
+        for (i in 1 until playerCount) {
+            val candidateIndex = (originalPlayerIndex + i) % playerCount
+            if (canPlayerUseDice(state, candidateIndex, giftedDice.value)) {
+                // Found a player who can use the dice
+                return state.copy(
+                    currentPlayerIndex = candidateIndex,
+                    phase = GamePhase.WAITING_FOR_MOVE,
+                    dice = null,
+                    giftedDice = giftedDice,
+                    giftedDiceOriginalPlayerIndex = originalPlayerIndex,
+                    consecutiveSixes = 0
+                )
+            }
+        }
+
+        // No one can use the dice - discard it and advance to next player normally
+        val nextIndex = (originalPlayerIndex + 1) % playerCount
+        return state.copy(
+            currentPlayerIndex = nextIndex,
+            phase = GamePhase.WAITING_FOR_ROLL,
+            dice = null,
+            giftedDice = null,
+            giftedDiceOriginalPlayerIndex = null,
+            consecutiveSixes = 0
+        )
+    }
+
+    /**
+     * Get the player index to resume from after a gifted dice is used.
+     * This is the player after the original roller.
+     */
+    fun getResumePlayerIndexAfterGiftedDice(state: GameState): Int {
+        val originalIndex = state.giftedDiceOriginalPlayerIndex ?: state.currentPlayerIndex
+        return (originalIndex + 1) % state.players.size
     }
 
     private fun checkWinner(players: List<Player>): PlayerColor? {

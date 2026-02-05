@@ -112,35 +112,21 @@ fun GameSetupScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // House rules
-            Text("House Rules", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            // Special rules
+            Text("Special Rules", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
-            RuleToggle("Enter board on 6 only", viewModel.enterOnSixOnly) {
-                viewModel.toggleEnterOnSixOnly()
+            RuleToggle("Pass unused dice to next player", viewModel.passDiceToNextPlayer) {
+                viewModel.togglePassDiceToNextPlayer()
             }
-            RuleToggle("Safe zones enabled", viewModel.safeZonesEnabled) {
-                viewModel.toggleSafeZones()
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Max consecutive 6s: ${viewModel.maxConsecutiveSixes}", modifier = Modifier.weight(1f))
-                Row {
-                    TextButton(onClick = { viewModel.updateMaxConsecutiveSixes(viewModel.maxConsecutiveSixes - 1) }) {
-                        Text("-")
-                    }
-                    TextButton(onClick = { viewModel.updateMaxConsecutiveSixes(viewModel.maxConsecutiveSixes + 1) }) {
-                        Text("+")
-                    }
-                }
-            }
+            Text(
+                text = "When enabled, if a player can't use their dice roll, it's passed to the next player as a bonus move.",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
-
             Button(
                 onClick = {
                     GameConfigHolder.current = viewModel.buildConfig()

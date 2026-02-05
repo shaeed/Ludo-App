@@ -6,5 +6,7 @@ data class GameState(
     val dice: DiceResult?,
     val phase: GamePhase,
     val winner: PlayerColor?,
-    val consecutiveSixes: Int = 0
+    val consecutiveSixes: Int = 0,
+    val giftedDice: DiceResult? = null,
+    val giftedDiceOriginalPlayerIndex: Int? = null  // Track who originally rolled the gifted dice
 )

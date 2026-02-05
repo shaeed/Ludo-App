@@ -26,6 +26,8 @@ class GameSetupViewModel : ViewModel() {
         private set
     var maxConsecutiveSixes by mutableIntStateOf(3)
         private set
+    var passDiceToNextPlayer by mutableStateOf(false)
+        private set
 
     fun updatePlayerCount(count: Int) {
         playerCount = count.coerceIn(2, 4)
@@ -55,6 +57,7 @@ class GameSetupViewModel : ViewModel() {
     fun toggleEnterOnSixOnly() { enterOnSixOnly = !enterOnSixOnly }
     fun toggleSafeZones() { safeZonesEnabled = !safeZonesEnabled }
     fun updateMaxConsecutiveSixes(value: Int) { maxConsecutiveSixes = value.coerceIn(1, 5) }
+    fun togglePassDiceToNextPlayer() { passDiceToNextPlayer = !passDiceToNextPlayer }
 
     fun buildConfig(): GameConfig {
         val activePlayers = playerConfigs.take(playerCount)
@@ -62,7 +65,8 @@ class GameSetupViewModel : ViewModel() {
             playerConfigs = activePlayers,
             enterOnSixOnly = enterOnSixOnly,
             safeZonesEnabled = safeZonesEnabled,
-            maxConsecutiveSixes = maxConsecutiveSixes
+            maxConsecutiveSixes = maxConsecutiveSixes,
+            passDiceToNextPlayer = passDiceToNextPlayer
         )
     }
 }

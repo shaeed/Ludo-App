@@ -12,6 +12,12 @@ import com.shaeed.ludo.model.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+data class TokenAnimation(
+    val tokenId: Int,
+    val tokenColor: PlayerColor,
+    val currentCell: Cell
+)
+
 class GameViewModel : ViewModel() {
 
     private val layout: BoardLayout = StandardBoardLayout()
@@ -27,13 +33,23 @@ class GameViewModel : ViewModel() {
     var isRolling by mutableStateOf(false)
         private set
 
+    var tokenAnimation by mutableStateOf<TokenAnimation?>(null)
+        private set
+
+    var isAnimating by mutableStateOf(false)
+        private set
+
+    var isUsingGiftedDice by mutableStateOf(false)
+        private set
+
     init {
-        checkAndHandleAiTurn()
+        checkAndHandleTurn()
     }
 
     fun getLayout(): BoardLayout = layout
 
     fun rollDice() {
+        if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_ROLL) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
         if (currentPlayer.isAI) return
@@ -49,11 +65,12 @@ class GameViewModel : ViewModel() {
             } else {
                 emptyList()
             }
-            checkAndHandleAiTurn()
+            checkAndHandleTurn()
         }
     }
 
     fun onCellTapped(row: Int, col: Int) {
+        if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_MOVE) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
         if (currentPlayer.isAI) return
@@ -61,11 +78,12 @@ class GameViewModel : ViewModel() {
         // Find which move corresponds to this tap
         val matchedMove = findMoveForTap(row, col)
         if (matchedMove != null) {
-            executeMove(matchedMove)
+            executeMove(matchedMove, usingGiftedDice = isUsingGiftedDice)
         }
     }
 
     fun onTokenTapped(tokenId: Int, tokenColor: PlayerColor) {
+        if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_MOVE) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
         if (currentPlayer.isAI) return
@@ -73,23 +91,112 @@ class GameViewModel : ViewModel() {
 
         val move = legalMoves.firstOrNull { it.token.id == tokenId && it.token.color == tokenColor }
         if (move != null) {
-            executeMove(move)
+            executeMove(move, usingGiftedDice = isUsingGiftedDice)
         }
     }
 
-    private fun executeMove(move: Move) {
-        gameState = engine.executeMove(gameState, move)
-        legalMoves = emptyList()
-        checkAndHandleAiTurn()
+    private fun executeMove(move: Move, usingGiftedDice: Boolean = false) {
+        viewModelScope.launch {
+            isAnimating = true
+            legalMoves = emptyList()
+
+            // Calculate the path from current cell to destination
+            val path = engine.pathCalculator.calculatePath(move.token, move.destination)
+
+            // Animate through each cell in the path
+            for (cell in path) {
+                tokenAnimation = TokenAnimation(
+                    tokenId = move.token.id,
+                    tokenColor = move.token.color,
+                    currentCell = cell
+                )
+                delay(120) // Delay at each cell
+            }
+
+            // Clear animation and apply the final state
+            tokenAnimation = null
+            isAnimating = false
+
+            if (usingGiftedDice) {
+                // After using gifted dice, resume from the player after the original roller
+                val resumePlayerIndex = engine.getResumePlayerIndexAfterGiftedDice(gameState)
+                val newState = engine.executeMove(gameState, move)
+
+                gameState = if (newState.phase != GamePhase.GAME_OVER) {
+                    newState.copy(
+                        currentPlayerIndex = resumePlayerIndex,
+                        phase = GamePhase.WAITING_FOR_ROLL,
+                        dice = null,
+                        giftedDiceOriginalPlayerIndex = null,
+                        consecutiveSixes = 0
+                    )
+                } else {
+                    newState
+                }
+                isUsingGiftedDice = false
+            } else {
+                gameState = engine.executeMove(gameState, move)
+            }
+            checkAndHandleTurn()
+        }
     }
 
-    private fun checkAndHandleAiTurn() {
+    private fun checkAndHandleTurn() {
         val state = gameState
         if (state.phase == GamePhase.GAME_OVER) return
 
         val currentPlayer = state.players[state.currentPlayerIndex]
-        if (!currentPlayer.isAI) return
 
+        // Check for gifted dice first (applies to both human and AI)
+        if (state.giftedDice != null) {
+            handleGiftedDice(currentPlayer)
+            return
+        }
+
+        // Handle AI turn
+        if (currentPlayer.isAI) {
+            handleAiTurn(currentPlayer)
+        }
+    }
+
+    private fun handleGiftedDice(currentPlayer: Player) {
+        viewModelScope.launch {
+            delay(300) // Brief pause to show gifted dice
+
+            // Apply the gifted dice
+            val stateWithDice = engine.applyGiftedDice(gameState)
+            gameState = stateWithDice
+            isUsingGiftedDice = true
+
+            val moves = engine.moveValidator.computeLegalMoves(stateWithDice)
+            legalMoves = moves
+
+            if (moves.isNotEmpty()) {
+                if (currentPlayer.isAI) {
+                    delay(400) // AI thinking
+                    val strategy = getStrategy(currentPlayer.difficulty)
+                    val chosenMove = strategy.chooseMove(stateWithDice, moves, layout)
+                    executeMove(chosenMove, usingGiftedDice = true)
+                }
+                // For human player, wait for tap
+            } else {
+                // Safety fallback: No moves with gifted dice (shouldn't happen as we pre-check)
+                // Resume from the player after the original roller
+                val resumePlayerIndex = engine.getResumePlayerIndexAfterGiftedDice(gameState)
+                isUsingGiftedDice = false
+                legalMoves = emptyList()
+                gameState = stateWithDice.copy(
+                    currentPlayerIndex = resumePlayerIndex,
+                    dice = null,
+                    giftedDiceOriginalPlayerIndex = null,
+                    phase = GamePhase.WAITING_FOR_ROLL
+                )
+                checkAndHandleTurn()
+            }
+        }
+    }
+
+    private fun handleAiTurn(currentPlayer: Player) {
         viewModelScope.launch {
             delay(600) // Thinking delay
 
@@ -112,9 +219,9 @@ class GameViewModel : ViewModel() {
                         executeMove(chosenMove)
                     }
                 } else {
-                    // No moves or auto-skipped, check if still AI's turn
+                    // No moves or auto-skipped, check if still AI's turn or gifted dice passed
                     legalMoves = emptyList()
-                    checkAndHandleAiTurn()
+                    checkAndHandleTurn()
                 }
             }
         }

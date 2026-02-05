@@ -36,6 +36,7 @@ fun BoardCanvas(
     layout: BoardLayout,
     legalMoves: List<Move>,
     onCellTapped: (Int, Int) -> Unit,
+    tokenAnimation: TokenAnimation? = null,
     modifier: Modifier = Modifier
 ) {
     Canvas(
@@ -102,12 +103,19 @@ fun BoardCanvas(
             }
         }
 
-        // 9. Tokens in base
+        // Helper to check if a token is being animated
+        fun isAnimatingToken(tokenId: Int, tokenColor: PlayerColor): Boolean {
+            return tokenAnimation != null &&
+                tokenAnimation.tokenId == tokenId &&
+                tokenAnimation.tokenColor == tokenColor
+        }
+
+        // 9. Tokens in base (skip animating token)
         for (player in gameState.players) {
             val baseTokens = player.tokens.filter { it.cell is Cell.Base }
             val basePositions = layout.basePositions(player.color)
             for ((idx, token) in baseTokens.withIndex()) {
-                if (idx < basePositions.size) {
+                if (idx < basePositions.size && !isAnimatingToken(token.id, token.color)) {
                     val (row, col) = basePositions[idx]
                     val movable = legalMoves.any { it.token.id == token.id && it.token.color == token.color }
                     drawToken(row, col, cs, token.color, movable)
@@ -115,11 +123,12 @@ fun BoardCanvas(
             }
         }
 
-        // 10. Tokens on board (grouped by cell for overlap visibility)
+        // 10. Tokens on board (grouped by cell for overlap visibility, skip animating token)
         val boardTokensByCell = mutableMapOf<Pair<Int, Int>, MutableList<BoardTokenInfo>>()
         for (player in gameState.players) {
             for (token in player.tokens) {
-                if (token.cell is Cell.Normal || token.cell is Cell.HomeStretch) {
+                if ((token.cell is Cell.Normal || token.cell is Cell.HomeStretch) &&
+                    !isAnimatingToken(token.id, token.color)) {
                     val (row, col) = layout.cellToGrid(token.cell)
                     val movable = legalMoves.any { it.token.id == token.id && it.token.color == token.color }
                     boardTokensByCell.getOrPut(Pair(row, col)) { mutableListOf() }
@@ -143,6 +152,27 @@ fun BoardCanvas(
                     PlayerColor.BLUE -> Pair(0.3f, -0.3f)
                 }
                 drawToken(7, 7, cs, player.color, false, off.second * cs, off.first * cs)
+            }
+        }
+
+        // 12. Animating token (drawn on top)
+        if (tokenAnimation != null) {
+            val animCell = tokenAnimation.currentCell
+            when (animCell) {
+                is Cell.Normal, is Cell.HomeStretch -> {
+                    val (row, col) = layout.cellToGrid(animCell)
+                    drawToken(row, col, cs, tokenAnimation.tokenColor, false)
+                }
+                is Cell.Home -> {
+                    val off = when (tokenAnimation.tokenColor) {
+                        PlayerColor.RED -> Pair(-0.3f, -0.3f)
+                        PlayerColor.GREEN -> Pair(-0.3f, 0.3f)
+                        PlayerColor.YELLOW -> Pair(0.3f, 0.3f)
+                        PlayerColor.BLUE -> Pair(0.3f, -0.3f)
+                    }
+                    drawToken(7, 7, cs, tokenAnimation.tokenColor, false, off.second * cs, off.first * cs)
+                }
+                else -> {}
             }
         }
     }
