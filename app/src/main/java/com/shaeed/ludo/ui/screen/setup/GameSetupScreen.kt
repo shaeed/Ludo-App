@@ -112,35 +112,6 @@ fun GameSetupScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // House rules
-            Text("House Rules", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            RuleToggle("Enter board on 6 only", viewModel.enterOnSixOnly) {
-                viewModel.toggleEnterOnSixOnly()
-            }
-            RuleToggle("Safe zones enabled", viewModel.safeZonesEnabled) {
-                viewModel.toggleSafeZones()
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Max consecutive 6s: ${viewModel.maxConsecutiveSixes}", modifier = Modifier.weight(1f))
-                Row {
-                    TextButton(onClick = { viewModel.updateMaxConsecutiveSixes(viewModel.maxConsecutiveSixes - 1) }) {
-                        Text("-")
-                    }
-                    TextButton(onClick = { viewModel.updateMaxConsecutiveSixes(viewModel.maxConsecutiveSixes + 1) }) {
-                        Text("+")
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Special rules
             Text("Special Rules", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
@@ -156,7 +127,6 @@ fun GameSetupScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
             Button(
                 onClick = {
                     GameConfigHolder.current = viewModel.buildConfig()
