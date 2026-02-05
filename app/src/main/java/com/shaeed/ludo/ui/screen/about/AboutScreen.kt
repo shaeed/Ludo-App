@@ -109,8 +109,36 @@ fun AboutScreen(
                     Text(
                         text = "This Ludo app was built with love using Kotlin and Jetpack Compose. " +
                                 "It features AI opponents, customizable rules, and a clean Material Design 3 interface. " +
-                                "This app is open source and free to use.",
+                                "This app is open source and completely free to use.",
                         fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Ad-free promise
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "100% Ad-Free Forever!",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "I hate ads, and I believe you do too. This app will never show any advertisements - not now, not ever. " +
+                                "Enjoy your game without interruptions!",
+                        fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
@@ -312,6 +340,25 @@ fun AboutScreen(
             RuleSection(
                 title = "Winning",
                 content = "The first player to move all four tokens into the home (center) wins the game!"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Special Rules Section
+            Text(
+                text = "Special Rules",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            RuleSection(
+                title = "Pass Unused Dice (Optional)",
+                content = "When enabled in game setup, if a player rolls the dice but cannot use it (no valid moves available), " +
+                        "the dice value is passed to the next player as a bonus move. The next player can use this bonus dice " +
+                        "to move any of their tokens before rolling their own dice. If that player also cannot use it, " +
+                        "the dice passes to the next player, and so on. If no player can use the dice, it is discarded. " +
+                        "After the bonus dice is used, the game resumes from the player who was next in turn after the original roller."
             )
 
             Spacer(modifier = Modifier.height(16.dp))
