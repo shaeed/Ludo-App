@@ -65,14 +65,14 @@ fun SettingsScreen(
                 onClick = { /* Apply classic rules — these are already the defaults */ },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Classic Rules (Enter on 6, Safe Zones, Blocking)")
+                Text("Classic Rules (Enter on 6, Safe Zones)")
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { /* Apply casual rules */ },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Casual Rules (Enter on 1 or 6, No Blocking)")
+                Text("Casual Rules (Enter on 1 or 6)")
             }
         }
     }

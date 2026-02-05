@@ -23,10 +23,8 @@ class MoveValidator(
                     // Can only enter the board if dice allows
                     if (ruleSet.canEnterBoard(diceValue)) {
                         val dest = pathCalculator.enterBoardDestination(currentPlayer.color)
-                        if (!ruleSet.isBlocked(dest, allTokens, token)) {
-                            val captures = ruleSet.isCaptured(token, dest, allTokens)
-                            moves.add(Move(token, dest, captures))
-                        }
+                        val captures = ruleSet.isCaptured(token, dest, allTokens)
+                        moves.add(Move(token, dest, captures))
                     }
                 }
                 is Cell.Home -> {
@@ -35,7 +33,7 @@ class MoveValidator(
                 else -> {
                     // Normal or HomeStretch — move forward
                     val dest = pathCalculator.calculateDestination(token, diceValue)
-                    if (dest != null && !ruleSet.isBlocked(dest, allTokens, token)) {
+                    if (dest != null) {
                         val captures = ruleSet.isCaptured(token, dest, allTokens)
                         moves.add(Move(token, dest, captures))
                     }

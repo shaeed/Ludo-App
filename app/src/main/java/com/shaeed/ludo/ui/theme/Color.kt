@@ -10,19 +10,12 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-// Ludo player colors
-val LudoRed = Color(0xFFD32F2F)
+// Ludo player colors — vivid to match classic board
+val LudoRed = Color(0xFFF44336)
 val LudoRedLight = Color(0xFFFFCDD2)
-val LudoGreen = Color(0xFF388E3C)
+val LudoGreen = Color(0xFF4CAF50)
 val LudoGreenLight = Color(0xFFC8E6C9)
-val LudoYellow = Color(0xFFFBC02D)
+val LudoYellow = Color(0xFFFFCA28)
 val LudoYellowLight = Color(0xFFFFF9C4)
-val LudoBlue = Color(0xFF1976D2)
+val LudoBlue = Color(0xFF2196F3)
 val LudoBlueLight = Color(0xFFBBDEFB)
-
-// Board colors
-val BoardBackground = Color(0xFFF5F0E1)
-val BoardSafeZone = Color(0xFF9E9E9E)
-val BoardTrack = Color(0xFFFAFAFA)
-val BoardCenter = Color(0xFFEEEEEE)
-val BoardBorder = Color(0xFF424242)

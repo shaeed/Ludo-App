@@ -26,70 +26,70 @@ class StandardBoardLayout : BoardLayout {
     // Track cell grid coordinates (52 cells, clockwise from RED start)
     // RED starts at index 0
     private val trackCoordinates: List<Pair<Int, Int>> = listOf(
-        // RED's column going up: row 6→1, col 6
-        Pair(6, 6),  // 0 - RED start
-        Pair(5, 6),  // 1
-        Pair(4, 6),  // 2
-        Pair(3, 6),  // 3
-        Pair(2, 6),  // 4
-        Pair(1, 6),  // 5
+        // Top of left arm going right: row 6, col 1→4
+        Pair(6, 1),  // 0 - RED start
+        Pair(6, 2),  // 1
+        Pair(6, 3),  // 2
+        Pair(6, 4),  // 3
+        Pair(6, 5),  // 4
+        // Vertical arm going up: row 6→1, col 6
+        Pair(5, 6),  // 5
+        Pair(4, 6),  // 6
+        Pair(3, 6),  // 7
+        Pair(2, 6),  // 8
+        Pair(1, 6),  // 9
         // Top-left to top-right across top arm: row 0, col 6→8
-        Pair(0, 6),  // 6
-        Pair(0, 7),  // 7
-        Pair(0, 8),  // 8
-        // GREEN's column going down: row 1→6, col 8
-        Pair(1, 8),  // 9
-        Pair(2, 8),  // 10
-        Pair(3, 8),  // 11
-        Pair(4, 8),  // 12
-        Pair(5, 8),  // 13 - GREEN start
+        Pair(0, 6),  // 10
+        Pair(0, 7),  // 11
+        Pair(0, 8),  // 12
+        // GREEN's column going down: row 1→5, col 8
+        Pair(1, 8),  // 13 - GREEN start
+        Pair(2, 8),  // 14
+        Pair(3, 8),  // 15
+        Pair(4, 8),  // 16
+        Pair(5, 8),  // 17
         // Right arm going right: row 6, col 9→14
-        Pair(6, 9),  // 14
-        Pair(6, 10), // 15
-        Pair(6, 11), // 16
-        Pair(6, 12), // 17
-        Pair(6, 13), // 18
-        // Top-right to bottom-right down right side: row 6→8, col 14
-        Pair(6, 14), // 19
-        Pair(7, 14), // 20
-        Pair(8, 14), // 21
-        // Right column going left along bottom of right arm: row 8, col 13→9
-        Pair(8, 13), // 22
-        Pair(8, 12), // 23
-        Pair(8, 11), // 24
-        Pair(8, 10), // 25
-        Pair(8, 9),  // 26 - YELLOW start
-        // YELLOW's column going down: row 9→14, col 8
-        Pair(9, 8),  // 27
-        Pair(10, 8), // 28
-        Pair(11, 8), // 29
-        Pair(12, 8), // 30
-        Pair(13, 8), // 31
+        Pair(6, 9),  // 18
+        Pair(6, 10), // 19
+        Pair(6, 11), // 20
+        Pair(6, 12), // 21
+        Pair(6, 13), // 22
+        Pair(6, 14), // 23
+        // Top-right to bottom-right down right side: row 7→8, col 14
+        Pair(7, 14), // 24
+        Pair(8, 14), // 25
+        // Bottom of right arm going left: row 8, col 13→9
+        Pair(8, 13), // 26 - YELLOW start
+        Pair(8, 12), // 27
+        Pair(8, 11), // 28
+        Pair(8, 10), // 29
+        Pair(8, 9),  // 30
+        // YELLOW's column going down: row 9→13, col 8
+        Pair(9, 8),  // 31
+        Pair(10, 8), // 32
+        Pair(11, 8), // 33
+        Pair(12, 8), // 34
+        Pair(13, 8), // 35
         // Bottom-right to bottom-left across bottom arm: row 14, col 8→6
-        Pair(14, 8), // 32
-        Pair(14, 7), // 33
-        Pair(14, 6), // 34
-        // BLUE's column going up: row 13→8, col 6
-        Pair(13, 6), // 35
-        Pair(12, 6), // 36
-        Pair(11, 6), // 37
-        Pair(10, 6), // 38
-        Pair(9, 6),  // 39 - BLUE start
+        Pair(14, 8), // 36
+        Pair(14, 7), // 37
+        Pair(14, 6), // 38
+        // BLUE's column going up: row 13→9, col 6
+        Pair(13, 6), // 39 - BLUE start
+        Pair(12, 6), // 40
+        Pair(11, 6), // 41
+        Pair(10, 6), // 42
+        Pair(9, 6),  // 43
         // Left arm going left: row 8, col 5→0
-        Pair(8, 5),  // 40
-        Pair(8, 4),  // 41
-        Pair(8, 3),  // 42
-        Pair(8, 2),  // 43
-        Pair(8, 1),  // 44
+        Pair(8, 5),  // 44
+        Pair(8, 4),  // 45
+        Pair(8, 3),  // 46
+        Pair(8, 2),  // 47
+        Pair(8, 1),  // 48
         // Bottom-left to top-left up left side: row 8→6, col 0
-        Pair(8, 0),  // 45
-        Pair(7, 0),  // 46
-        Pair(6, 0),  // 47
-        // Left column going right along top of left arm: row 6, col 1→5
-        Pair(6, 1),  // 48
-        Pair(6, 2),  // 49
-        Pair(6, 3),  // 50
-        Pair(6, 4),  // 51
+        Pair(8, 0),  // 49
+        Pair(7, 0),  // 50
+        Pair(6, 0),  // 51
     )
 
     // Home stretch coordinates per color (5 cells each, leading toward center)
