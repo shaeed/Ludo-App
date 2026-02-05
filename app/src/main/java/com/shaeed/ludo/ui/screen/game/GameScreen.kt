@@ -57,6 +57,7 @@ fun GameScreen(
             layout = viewModel.getLayout(),
             legalMoves = viewModel.legalMoves,
             onCellTapped = { row, col -> viewModel.onCellTapped(row, col) },
+            tokenAnimation = viewModel.tokenAnimation,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -101,12 +102,14 @@ fun GameScreen(
                     fontSize = 14.sp
                 )
                 Text(
-                    text = when (state.phase) {
-                        GamePhase.WAITING_FOR_ROLL -> if (isHumanTurn) "Tap dice or shake to roll" else "AI is thinking..."
-                        GamePhase.WAITING_FOR_MOVE -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
-                        GamePhase.ROLLING -> "Rolling..."
-                        GamePhase.ANIMATING -> "Moving..."
-                        GamePhase.GAME_OVER -> "Game Over!"
+                    text = when {
+                        viewModel.isAnimating -> "Moving..."
+                        state.phase == GamePhase.WAITING_FOR_ROLL -> if (isHumanTurn) "Tap dice or shake to roll" else "AI is thinking..."
+                        state.phase == GamePhase.WAITING_FOR_MOVE -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
+                        state.phase == GamePhase.ROLLING -> "Rolling..."
+                        state.phase == GamePhase.ANIMATING -> "Moving..."
+                        state.phase == GamePhase.GAME_OVER -> "Game Over!"
+                        else -> ""
                     },
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

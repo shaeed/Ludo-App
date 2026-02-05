@@ -32,6 +32,23 @@ class PathCalculator(private val layout: BoardLayout) {
     }
 
     /**
+     * Calculates the complete path of cells from source to destination.
+     * Returns all cells the token will pass through, including the destination.
+     */
+    fun calculatePath(token: Token, destination: Cell): List<Cell> {
+        val fullPath = layout.fullPath(token.color)
+        val startIndex = findPathIndex(token, fullPath) ?: return listOf(destination)
+        val endIndex = fullPath.indexOfFirst { cellsMatch(it, destination) }.takeIf { it >= 0 }
+            ?: return listOf(destination)
+
+        return if (endIndex > startIndex) {
+            fullPath.subList(startIndex + 1, endIndex + 1)
+        } else {
+            listOf(destination)
+        }
+    }
+
+    /**
      * Finds the index of the token's current cell within its color's full path.
      */
     private fun findPathIndex(token: Token, path: List<Cell>): Int? {

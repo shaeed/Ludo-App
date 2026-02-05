@@ -7,7 +7,7 @@ class GameEngine(
     private val config: GameConfig
 ) {
     private val ruleSet: RuleSet = StandardRuleSet(config)
-    private val pathCalculator = PathCalculator(layout)
+    val pathCalculator = PathCalculator(layout)
     val moveValidator = MoveValidator(layout, ruleSet, pathCalculator)
 
     fun createInitialState(): GameState {

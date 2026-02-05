@@ -12,6 +12,12 @@ import com.shaeed.ludo.model.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+data class TokenAnimation(
+    val tokenId: Int,
+    val tokenColor: PlayerColor,
+    val currentCell: Cell
+)
+
 class GameViewModel : ViewModel() {
 
     private val layout: BoardLayout = StandardBoardLayout()
@@ -27,6 +33,12 @@ class GameViewModel : ViewModel() {
     var isRolling by mutableStateOf(false)
         private set
 
+    var tokenAnimation by mutableStateOf<TokenAnimation?>(null)
+        private set
+
+    var isAnimating by mutableStateOf(false)
+        private set
+
     init {
         checkAndHandleAiTurn()
     }
@@ -34,6 +46,7 @@ class GameViewModel : ViewModel() {
     fun getLayout(): BoardLayout = layout
 
     fun rollDice() {
+        if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_ROLL) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
         if (currentPlayer.isAI) return
@@ -54,6 +67,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun onCellTapped(row: Int, col: Int) {
+        if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_MOVE) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
         if (currentPlayer.isAI) return
@@ -66,6 +80,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun onTokenTapped(tokenId: Int, tokenColor: PlayerColor) {
+        if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_MOVE) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
         if (currentPlayer.isAI) return
@@ -78,9 +93,29 @@ class GameViewModel : ViewModel() {
     }
 
     private fun executeMove(move: Move) {
-        gameState = engine.executeMove(gameState, move)
-        legalMoves = emptyList()
-        checkAndHandleAiTurn()
+        viewModelScope.launch {
+            isAnimating = true
+            legalMoves = emptyList()
+
+            // Calculate the path from current cell to destination
+            val path = engine.pathCalculator.calculatePath(move.token, move.destination)
+
+            // Animate through each cell in the path
+            for (cell in path) {
+                tokenAnimation = TokenAnimation(
+                    tokenId = move.token.id,
+                    tokenColor = move.token.color,
+                    currentCell = cell
+                )
+                delay(120) // Delay at each cell
+            }
+
+            // Clear animation and apply the final state
+            tokenAnimation = null
+            isAnimating = false
+            gameState = engine.executeMove(gameState, move)
+            checkAndHandleAiTurn()
+        }
     }
 
     private fun checkAndHandleAiTurn() {
