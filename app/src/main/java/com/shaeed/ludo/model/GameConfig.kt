@@ -11,7 +11,6 @@ data class GameConfig(
     val playerConfigs: List<PlayerConfig>,
     val enterOnSixOnly: Boolean = true,
     val safeZonesEnabled: Boolean = true,
-    val blockingEnabled: Boolean = true,
     val maxConsecutiveSixes: Int = 3
 )
 

@@ -24,8 +24,6 @@ class GameSetupViewModel : ViewModel() {
         private set
     var safeZonesEnabled by mutableStateOf(true)
         private set
-    var blockingEnabled by mutableStateOf(true)
-        private set
     var maxConsecutiveSixes by mutableIntStateOf(3)
         private set
 
@@ -56,7 +54,6 @@ class GameSetupViewModel : ViewModel() {
 
     fun toggleEnterOnSixOnly() { enterOnSixOnly = !enterOnSixOnly }
     fun toggleSafeZones() { safeZonesEnabled = !safeZonesEnabled }
-    fun toggleBlocking() { blockingEnabled = !blockingEnabled }
     fun updateMaxConsecutiveSixes(value: Int) { maxConsecutiveSixes = value.coerceIn(1, 5) }
 
     fun buildConfig(): GameConfig {
@@ -65,7 +62,6 @@ class GameSetupViewModel : ViewModel() {
             playerConfigs = activePlayers,
             enterOnSixOnly = enterOnSixOnly,
             safeZonesEnabled = safeZonesEnabled,
-            blockingEnabled = blockingEnabled,
             maxConsecutiveSixes = maxConsecutiveSixes
         )
     }

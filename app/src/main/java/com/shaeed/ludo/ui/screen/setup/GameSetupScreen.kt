@@ -123,9 +123,6 @@ fun GameSetupScreen(
             RuleToggle("Safe zones enabled", viewModel.safeZonesEnabled) {
                 viewModel.toggleSafeZones()
             }
-            RuleToggle("Blocking enabled (2+ tokens)", viewModel.blockingEnabled) {
-                viewModel.toggleBlocking()
-            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,

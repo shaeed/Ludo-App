@@ -99,9 +99,11 @@ class GameEngine(
 
         val newState = state.copy(players = updatedPlayers)
 
-        // Extra turn on 6 (and captures grant extra turn in standard rules)
-        val getsExtraTurn = diceValue == 6 &&
-            ruleSet.grantsExtraTurn(diceValue, state.consecutiveSixes - 1, config.maxConsecutiveSixes)
+        // Extra turn on 6 or on capture
+        val getsExtraTurn = ruleSet.grantsExtraTurn(diceValue,
+            state.consecutiveSixes - 1,
+            config.maxConsecutiveSixes)
+            || move.captures.isNotEmpty()
 
         return if (getsExtraTurn) {
             newState.copy(

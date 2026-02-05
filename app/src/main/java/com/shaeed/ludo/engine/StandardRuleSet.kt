@@ -27,19 +27,6 @@ class StandardRuleSet(private val config: GameConfig) : RuleSet {
         }
     }
 
-    override fun isBlocked(destination: Cell, allTokens: List<Token>, movingToken: Token): Boolean {
-        if (!config.blockingEnabled) return false
-        if (destination !is Cell.Normal) return false
-
-        // A cell is blocked if there are 2+ tokens of the same OTHER color on it
-        val tokensOnCell = allTokens.filter { other ->
-            other.color != movingToken.color &&
-            other.cell is Cell.Normal &&
-            (other.cell as Cell.Normal).index == destination.index
-        }
-        return tokensOnCell.size >= 2
-    }
-
     override fun requiresExactRoll(): Boolean = true
 
     override fun shouldForfeitForConsecutiveSixes(consecutiveSixes: Int, maxConsecutiveSixes: Int): Boolean {

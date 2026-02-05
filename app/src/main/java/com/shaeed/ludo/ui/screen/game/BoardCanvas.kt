@@ -6,17 +6,29 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import com.shaeed.ludo.engine.Move
 import com.shaeed.ludo.model.*
 import com.shaeed.ludo.ui.components.colorForPlayer
-import com.shaeed.ludo.ui.components.lightColorForPlayer
-import com.shaeed.ludo.ui.theme.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+
+private val startColorMap = mapOf(
+    0 to PlayerColor.RED,
+    13 to PlayerColor.GREEN,
+    26 to PlayerColor.YELLOW,
+    39 to PlayerColor.BLUE
+)
+
+private data class BoardTokenInfo(val color: PlayerColor, val movable: Boolean)
 
 @Composable
 fun BoardCanvas(
@@ -32,205 +44,322 @@ fun BoardCanvas(
             .aspectRatio(1f)
             .pointerInput(legalMoves) {
                 detectTapGestures { offset ->
-                    val cellSize = size.width / layout.gridSize.toFloat()
-                    val col = (offset.x / cellSize).toInt()
-                    val row = (offset.y / cellSize).toInt()
+                    val cs = size.width / layout.gridSize.toFloat()
+                    val col = (offset.x / cs).toInt()
+                    val row = (offset.y / cs).toInt()
                     onCellTapped(row, col)
                 }
             }
     ) {
-        val cellSize = size.width / layout.gridSize
+        val cs = size.width / layout.gridSize
 
-        // Draw board background
-        drawRect(color = BoardBackground, size = size)
+        // 1. White background
+        drawRect(color = Color.White, size = size)
 
-        // Draw base areas
-        drawBaseArea(PlayerColor.RED, 0, 0, cellSize)
-        drawBaseArea(PlayerColor.GREEN, 0, 9, cellSize)
-        drawBaseArea(PlayerColor.YELLOW, 9, 9, cellSize)
-        drawBaseArea(PlayerColor.BLUE, 9, 0, cellSize)
+        // 2. Base areas
+        drawBaseArea(PlayerColor.RED, 0, 0, cs)
+        drawBaseArea(PlayerColor.GREEN, 0, 9, cs)
+        drawBaseArea(PlayerColor.YELLOW, 9, 9, cs)
+        drawBaseArea(PlayerColor.BLUE, 9, 0, cs)
 
-        // Draw track cells
+        // 3. Center triangles (behind track cells)
+        drawCenterTriangles(cs)
+
+        // 4. Track cells
         for (i in 0 until layout.trackSize) {
             val cell = Cell.Normal(i, i in layout.safePositions)
             val (row, col) = layout.cellToGrid(cell)
-            drawTrackCell(row, col, cellSize, cell.isSafe)
+            val startColor = startColorMap[i]
+            drawTrackCell(row, col, cs, startColor)
         }
 
-        // Draw home stretch cells
+        // 5. Home stretch cells
         for (color in PlayerColor.entries) {
             for (i in 0 until layout.homeStretchLength) {
                 val cell = Cell.HomeStretch(color, i)
                 val (row, col) = layout.cellToGrid(cell)
-                drawHomeStretchCell(row, col, cellSize, color)
+                drawHomeStretchCell(row, col, cs, color)
             }
         }
 
-        // Draw center home
-        drawCenterHome(cellSize)
-
-        // Highlight legal move destinations
-        val moveDestinations = legalMoves.associate { move ->
-            val (r, c) = if (move.destination is Cell.Base) {
-                Pair(-1, -1)
-            } else {
-                layout.cellToGrid(move.destination)
-            }
-            Pair(r, c) to move
+        // 6. Stars on non-start safe positions
+        for (safeIdx in layout.safePositions) {
+            val (row, col) = layout.cellToGrid(Cell.Normal(safeIdx, true))
+            drawStar((col + 0.5f) * cs, (row + 0.5f) * cs, cs * 0.28f, Color(0xFF424242))
         }
 
-        for ((pos, _) in moveDestinations) {
-            if (pos.first >= 0 && pos.second >= 0) {
-                drawLegalMoveHighlight(pos.first, pos.second, cellSize)
+        // 7. Arm-tip arrows
+        drawArrow(0, 7, cs, colorForPlayer(PlayerColor.GREEN), "down")
+        drawArrow(7, 0, cs, colorForPlayer(PlayerColor.RED), "right")
+        drawArrow(7, 14, cs, colorForPlayer(PlayerColor.YELLOW), "left")
+        drawArrow(14, 7, cs, colorForPlayer(PlayerColor.BLUE), "up")
+
+        // 8. Legal move highlights
+        for (move in legalMoves) {
+            if (move.destination !is Cell.Base) {
+                val (r, c) = layout.cellToGrid(move.destination)
+                drawLegalMoveHighlight(r, c, cs)
             }
         }
 
-        // Draw tokens on base
+        // 9. Tokens in base
         for (player in gameState.players) {
             val baseTokens = player.tokens.filter { it.cell is Cell.Base }
             val basePositions = layout.basePositions(player.color)
             for ((idx, token) in baseTokens.withIndex()) {
                 if (idx < basePositions.size) {
                     val (row, col) = basePositions[idx]
-                    val isMovable = legalMoves.any { it.token.id == token.id && it.token.color == token.color }
-                    drawToken(row, col, cellSize, token.color, isMovable)
+                    val movable = legalMoves.any { it.token.id == token.id && it.token.color == token.color }
+                    drawToken(row, col, cs, token.color, movable)
                 }
             }
         }
 
-        // Draw tokens on board (Normal, HomeStretch)
+        // 10. Tokens on board (grouped by cell for overlap visibility)
+        val boardTokensByCell = mutableMapOf<Pair<Int, Int>, MutableList<BoardTokenInfo>>()
         for (player in gameState.players) {
             for (token in player.tokens) {
                 if (token.cell is Cell.Normal || token.cell is Cell.HomeStretch) {
                     val (row, col) = layout.cellToGrid(token.cell)
-                    val isMovable = legalMoves.any { it.token.id == token.id && it.token.color == token.color }
-                    drawToken(row, col, cellSize, token.color, isMovable)
+                    val movable = legalMoves.any { it.token.id == token.id && it.token.color == token.color }
+                    boardTokensByCell.getOrPut(Pair(row, col)) { mutableListOf() }
+                        .add(BoardTokenInfo(token.color, movable))
                 }
             }
         }
+        for ((pos, tokens) in boardTokensByCell) {
+            val (row, col) = pos
+            drawStackedTokens(row, col, cs, tokens)
+        }
 
-        // Draw tokens at home (center) — stack them
+        // 11. Tokens at home (center)
         for (player in gameState.players) {
             val homeTokens = player.tokens.filter { it.cell is Cell.Home }
             if (homeTokens.isNotEmpty()) {
-                val (baseRow, baseCol) = layout.homePosition(player.color)
-                // Offset slightly per color to avoid overlap
-                val colorOffset = when (player.color) {
+                val off = when (player.color) {
                     PlayerColor.RED -> Pair(-0.3f, -0.3f)
                     PlayerColor.GREEN -> Pair(-0.3f, 0.3f)
                     PlayerColor.YELLOW -> Pair(0.3f, 0.3f)
                     PlayerColor.BLUE -> Pair(0.3f, -0.3f)
                 }
-                drawToken(
-                    baseRow, baseCol, cellSize, player.color, false,
-                    offsetX = colorOffset.second * cellSize,
-                    offsetY = colorOffset.first * cellSize,
-                    label = homeTokens.size.toString()
-                )
+                drawToken(7, 7, cs, player.color, false, off.second * cs, off.first * cs)
             }
         }
     }
 }
 
-private fun DrawScope.drawBaseArea(color: PlayerColor, startRow: Int, startCol: Int, cellSize: Float) {
-    val baseColor = lightColorForPlayer(color)
-    val topLeft = Offset(startCol * cellSize, startRow * cellSize)
-    val areaSize = Size(6 * cellSize, 6 * cellSize)
+// ── Base area: solid color bg → white rounded rect → 4 colored circles ──
 
+private fun DrawScope.drawBaseArea(color: PlayerColor, startRow: Int, startCol: Int, cs: Float) {
+    val baseColor = colorForPlayer(color)
+    val topLeft = Offset(startCol * cs, startRow * cs)
+    val areaSize = Size(6 * cs, 6 * cs)
+
+    // Solid color fill
     drawRect(color = baseColor, topLeft = topLeft, size = areaSize)
-    drawRect(color = Color.Black.copy(alpha = 0.2f), topLeft = topLeft, size = areaSize, style = Stroke(2f))
 
-    // Draw base token slots
-    val layout = StandardBoardLayout()
-    val positions = layout.basePositions(color)
-    for ((row, col) in positions) {
-        val center = Offset((col + 0.5f) * cellSize, (row + 0.5f) * cellSize)
-        drawCircle(color = Color.White, radius = cellSize * 0.35f, center = center)
-        drawCircle(color = Color.Black.copy(alpha = 0.2f), radius = cellSize * 0.35f, center = center, style = Stroke(1.5f))
-    }
-}
-
-private fun DrawScope.drawTrackCell(row: Int, col: Int, cellSize: Float, isSafe: Boolean) {
-    val topLeft = Offset(col * cellSize, row * cellSize)
-    val cellSizeObj = Size(cellSize, cellSize)
-
-    drawRect(color = BoardTrack, topLeft = topLeft, size = cellSizeObj)
-    drawRect(color = Color.Black.copy(alpha = 0.15f), topLeft = topLeft, size = cellSizeObj, style = Stroke(0.5f))
-
-    if (isSafe) {
-        val center = Offset((col + 0.5f) * cellSize, (row + 0.5f) * cellSize)
-        // Draw a star/cross indicator for safe zone
-        drawCircle(color = BoardSafeZone.copy(alpha = 0.3f), radius = cellSize * 0.3f, center = center)
-    }
-}
-
-private fun DrawScope.drawHomeStretchCell(row: Int, col: Int, cellSize: Float, color: PlayerColor) {
-    val topLeft = Offset(col * cellSize, row * cellSize)
-    val cellSizeObj = Size(cellSize, cellSize)
-    val stretchColor = colorForPlayer(color).copy(alpha = 0.4f)
-
-    drawRect(color = stretchColor, topLeft = topLeft, size = cellSizeObj)
-    drawRect(color = Color.Black.copy(alpha = 0.15f), topLeft = topLeft, size = cellSizeObj, style = Stroke(0.5f))
-}
-
-private fun DrawScope.drawCenterHome(cellSize: Float) {
-    val center = Offset(7.5f * cellSize, 7.5f * cellSize)
-    val radius = cellSize * 1.2f
-
-    // Draw quadrants
-    val colors = listOf(
-        colorForPlayer(PlayerColor.RED),
-        colorForPlayer(PlayerColor.GREEN),
-        colorForPlayer(PlayerColor.YELLOW),
-        colorForPlayer(PlayerColor.BLUE)
+    // White rounded rectangle
+    val inset = 0.65f * cs
+    drawRoundRect(
+        color = Color.White,
+        topLeft = Offset(topLeft.x + inset, topLeft.y + inset),
+        size = Size(areaSize.width - 2 * inset, areaSize.height - 2 * inset),
+        cornerRadius = CornerRadius(0.6f * cs)
     )
-    for (i in colors.indices) {
-        drawArc(
-            color = colors[i].copy(alpha = 0.6f),
-            startAngle = 90f * i - 135f,
-            sweepAngle = 90f,
-            useCenter = true,
-            topLeft = Offset(center.x - radius, center.y - radius),
-            size = Size(radius * 2, radius * 2)
+
+    // 4 token slot circles (relative positions within the 6×6 area)
+    val slots = listOf(
+        Pair(1.8f, 1.8f), Pair(1.8f, 4.2f),
+        Pair(4.2f, 1.8f), Pair(4.2f, 4.2f)
+    )
+    for ((relRow, relCol) in slots) {
+        val cx = (startCol + relCol) * cs
+        val cy = (startRow + relRow) * cs
+        drawCircle(color = baseColor, radius = 0.78f * cs, center = Offset(cx, cy))
+    }
+}
+
+// ── Track cell: white (or player-colored if start) with thin border ──
+
+private fun DrawScope.drawTrackCell(row: Int, col: Int, cs: Float, startColor: PlayerColor?) {
+    val topLeft = Offset(col * cs, row * cs)
+    val cellSize = Size(cs, cs)
+    val fill = if (startColor != null) colorForPlayer(startColor) else Color.White
+
+    drawRect(color = fill, topLeft = topLeft, size = cellSize)
+    drawRect(color = Color(0x30000000), topLeft = topLeft, size = cellSize, style = Stroke(1f))
+}
+
+// ── Home stretch cell: solid player color with border ──
+
+private fun DrawScope.drawHomeStretchCell(row: Int, col: Int, cs: Float, color: PlayerColor) {
+    val topLeft = Offset(col * cs, row * cs)
+    val cellSize = Size(cs, cs)
+
+    drawRect(color = colorForPlayer(color), topLeft = topLeft, size = cellSize)
+    drawRect(color = Color(0x30000000), topLeft = topLeft, size = cellSize, style = Stroke(1f))
+}
+
+// ── Center home: 4 colored triangles meeting at center point ──
+
+private fun DrawScope.drawCenterTriangles(cs: Float) {
+    val cx = 7.5f * cs
+    val cy = 7.5f * cs
+    val l = 6f * cs
+    val t = 6f * cs
+    val r = 9f * cs
+    val b = 9f * cs
+
+    // Top triangle → GREEN (home stretch enters from top)
+    drawPath(Path().apply { moveTo(l, t); lineTo(r, t); lineTo(cx, cy); close() },
+        colorForPlayer(PlayerColor.GREEN))
+    // Right triangle → YELLOW (home stretch enters from right)
+    drawPath(Path().apply { moveTo(r, t); lineTo(r, b); lineTo(cx, cy); close() },
+        colorForPlayer(PlayerColor.YELLOW))
+    // Bottom triangle → BLUE (home stretch enters from bottom)
+    drawPath(Path().apply { moveTo(r, b); lineTo(l, b); lineTo(cx, cy); close() },
+        colorForPlayer(PlayerColor.BLUE))
+    // Left triangle → RED (home stretch enters from left)
+    drawPath(Path().apply { moveTo(l, b); lineTo(l, t); lineTo(cx, cy); close() },
+        colorForPlayer(PlayerColor.RED))
+
+    // Thin dividers between triangles
+    val divColor = Color(0x40000000)
+    drawLine(divColor, Offset(l, t), Offset(cx, cy), strokeWidth = 1.5f)
+    drawLine(divColor, Offset(r, t), Offset(cx, cy), strokeWidth = 1.5f)
+    drawLine(divColor, Offset(r, b), Offset(cx, cy), strokeWidth = 1.5f)
+    drawLine(divColor, Offset(l, b), Offset(cx, cy), strokeWidth = 1.5f)
+
+    // Border around center square
+    drawRect(Color(0x30000000), Offset(l, t), Size(r - l, b - t), style = Stroke(1.5f))
+}
+
+// ── 5-pointed star outline (safe-zone marker) ──
+
+private fun DrawScope.drawStar(cx: Float, cy: Float, outerR: Float, color: Color) {
+    val innerR = outerR * 0.4f
+    val path = Path()
+    val step = PI.toFloat() / 5f
+    val start = -PI.toFloat() / 2f
+
+    for (i in 0 until 10) {
+        val rad = if (i % 2 == 0) outerR else innerR
+        val angle = start + i * step
+        val x = cx + rad * cos(angle)
+        val y = cy + rad * sin(angle)
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    path.close()
+    drawPath(path, color, style = Stroke(width = 1.5f))
+}
+
+// ── Chevron arrow at arm tips ──
+
+private fun DrawScope.drawArrow(row: Int, col: Int, cs: Float, color: Color, dir: String) {
+    val cx = (col + 0.5f) * cs
+    val cy = (row + 0.5f) * cs
+    val s = cs * 0.25f
+    val path = Path()
+    when (dir) {
+        "down"  -> { path.moveTo(cx - s, cy - s * 0.5f); path.lineTo(cx, cy + s * 0.5f); path.lineTo(cx + s, cy - s * 0.5f) }
+        "up"    -> { path.moveTo(cx - s, cy + s * 0.5f); path.lineTo(cx, cy - s * 0.5f); path.lineTo(cx + s, cy + s * 0.5f) }
+        "right" -> { path.moveTo(cx - s * 0.5f, cy - s); path.lineTo(cx + s * 0.5f, cy); path.lineTo(cx - s * 0.5f, cy + s) }
+        "left"  -> { path.moveTo(cx + s * 0.5f, cy - s); path.lineTo(cx - s * 0.5f, cy); path.lineTo(cx + s * 0.5f, cy + s) }
+    }
+    drawPath(path, color, style = Stroke(width = 2.5f))
+}
+
+// ── Legal-move highlight ring ──
+
+private fun DrawScope.drawLegalMoveHighlight(row: Int, col: Int, cs: Float) {
+    val center = Offset((col + 0.5f) * cs, (row + 0.5f) * cs)
+    drawCircle(Color.White.copy(alpha = 0.7f), cs * 0.4f, center)
+    drawCircle(Color(0xFF4CAF50).copy(alpha = 0.6f), cs * 0.35f, center, style = Stroke(3f))
+}
+
+// ── Stacked tokens (overlap handling) ──
+
+private fun DrawScope.drawStackedTokens(
+    row: Int, col: Int, cs: Float, tokens: List<BoardTokenInfo>
+) {
+    val offsets = when (tokens.size) {
+        1 -> listOf(Pair(0f, 0f))
+        2 -> listOf(Pair(-0.18f, 0f), Pair(0.18f, 0f))
+        3 -> listOf(Pair(0f, -0.16f), Pair(-0.16f, 0.12f), Pair(0.16f, 0.12f))
+        else -> listOf(
+            Pair(-0.16f, -0.16f), Pair(0.16f, -0.16f),
+            Pair(-0.16f, 0.16f), Pair(0.16f, 0.16f)
         )
     }
-    drawCircle(color = Color.White, radius = radius * 0.3f, center = center)
-    drawCircle(color = Color.Black.copy(alpha = 0.3f), radius = radius, center = center, style = Stroke(2f))
+    val scale = when {
+        tokens.size == 1 -> 1f
+        tokens.size <= 3 -> 0.7f
+        else -> 0.6f
+    }
+    for ((idx, token) in tokens.withIndex()) {
+        if (idx >= offsets.size) break
+        val (ox, oy) = offsets[idx]
+        drawToken(row, col, cs, token.color, token.movable, ox * cs, oy * cs, scale)
+    }
 }
 
-private fun DrawScope.drawLegalMoveHighlight(row: Int, col: Int, cellSize: Float) {
-    val center = Offset((col + 0.5f) * cellSize, (row + 0.5f) * cellSize)
-    drawCircle(
-        color = Color.White.copy(alpha = 0.7f),
-        radius = cellSize * 0.4f,
-        center = center
-    )
-    drawCircle(
-        color = Color.Green.copy(alpha = 0.5f),
-        radius = cellSize * 0.35f,
-        center = center,
-        style = Stroke(3f)
-    )
-}
+// ── Token piece (3D cone-shaped Ludo token) ──
 
 private fun DrawScope.drawToken(
-    row: Int, col: Int, cellSize: Float, color: PlayerColor, isMovable: Boolean,
-    offsetX: Float = 0f, offsetY: Float = 0f, label: String? = null
+    row: Int, col: Int, cs: Float, color: PlayerColor, isMovable: Boolean,
+    offsetX: Float = 0f, offsetY: Float = 0f, scale: Float = 1f
 ) {
-    val center = Offset((col + 0.5f) * cellSize + offsetX, (row + 0.5f) * cellSize + offsetY)
-    val radius = cellSize * 0.35f
+    val center = Offset((col + 0.5f) * cs + offsetX, (row + 0.5f) * cs + offsetY)
+    val radius = cs * 0.35f * scale
     val tokenColor = colorForPlayer(color)
 
+    // Color variants for 3D shading
+    val darkColor = Color(
+        red = tokenColor.red * 0.55f,
+        green = tokenColor.green * 0.55f,
+        blue = tokenColor.blue * 0.55f
+    )
+    val lightColor = Color(
+        red = minOf(1f, tokenColor.red + (1f - tokenColor.red) * 0.45f),
+        green = minOf(1f, tokenColor.green + (1f - tokenColor.green) * 0.45f),
+        blue = minOf(1f, tokenColor.blue + (1f - tokenColor.blue) * 0.45f)
+    )
+
+    // Movable glow
     if (isMovable) {
-        drawCircle(
-            color = Color.White.copy(alpha = 0.6f),
-            radius = radius * 1.5f,
-            center = center
-        )
+        drawCircle(Color.White.copy(alpha = 0.7f), radius * 1.6f, center)
+        drawCircle(Color(0xFF4CAF50).copy(alpha = 0.5f), radius * 1.4f, center, style = Stroke(2.5f * scale))
     }
 
-    drawCircle(color = tokenColor, radius = radius, center = center)
-    drawCircle(color = Color.Black.copy(alpha = 0.3f), radius = radius, center = center, style = Stroke(1.5f))
-    drawCircle(color = Color.White.copy(alpha = 0.4f), radius = radius * 0.35f,
-        center = Offset(center.x - radius * 0.15f, center.y - radius * 0.15f))
+    // Drop shadow
+    drawCircle(
+        Color.Black.copy(alpha = 0.22f), radius,
+        Offset(center.x + 1.5f * scale, center.y + 2f * scale)
+    )
+
+    // Base ring (dark edge — the flat base of the cone)
+    drawCircle(darkColor, radius, center)
+
+    // Cone body (main color, inset from base)
+    drawCircle(tokenColor, radius * 0.85f, center)
+
+    // Dome highlight (lighter center — convex surface catching light)
+    drawCircle(lightColor.copy(alpha = 0.6f), radius * 0.55f, center)
+
+    // Top knob (small sphere at the peak)
+    drawCircle(tokenColor, radius * 0.3f, center)
+    drawCircle(darkColor.copy(alpha = 0.5f), radius * 0.3f, center, style = Stroke(1f * scale))
+
+    // Outer border
+    drawCircle(Color.Black.copy(alpha = 0.3f), radius, center, style = Stroke(1.5f * scale))
+
+    // Specular highlights (glossy plastic reflection)
+    drawCircle(
+        Color.White.copy(alpha = 0.55f), radius * 0.14f,
+        Offset(center.x - radius * 0.25f, center.y - radius * 0.3f)
+    )
+    drawCircle(
+        Color.White.copy(alpha = 0.2f), radius * 0.22f,
+        Offset(center.x - radius * 0.18f, center.y - radius * 0.18f)
+    )
 }
