@@ -4,6 +4,22 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Function to get git commit count for version calculation
+fun getCommitCount(): Int {
+    return try {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .directory(rootDir)
+            .redirectErrorStream(true)
+            .start()
+        process.inputStream.bufferedReader().readText().trim().toIntOrNull() ?: 1
+    } catch (e: Exception) {
+        1 // Default to 1 if git is not available
+    }
+}
+
+val majorVersion = 0
+val minorVersion = getCommitCount()
+
 android {
     namespace = "com.shaeed.ludo"
     compileSdk = 36
@@ -12,10 +28,15 @@ android {
         applicationId = "com.shaeed.ludo"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = minorVersion
+        versionName = "$majorVersion.$minorVersion"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -33,9 +54,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
 }
 

@@ -12,7 +12,8 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onAboutClicked: () -> Unit
 ) {
     var soundEnabled by remember { mutableStateOf(true) }
     var shakeToRollEnabled by remember { mutableStateOf(true) }
@@ -74,6 +75,21 @@ fun SettingsScreen(
             ) {
                 Text("Casual Rules (Enter on 1 or 6)")
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            HorizontalDivider()
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onAboutClicked,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("About & Game Rules")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
