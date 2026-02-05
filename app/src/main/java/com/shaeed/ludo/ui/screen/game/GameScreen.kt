@@ -105,7 +105,7 @@ fun GameScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                for (i in 2 until state.players.size) {
+                for (i in state.players.size - 1 downTo 2) {
                     PlayerPanel(
                         player = state.players[i],
                         isCurrentTurn = state.currentPlayerIndex == i,
