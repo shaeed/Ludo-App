@@ -1,8 +1,13 @@
 package com.shaeed.ludo.ui.screen.game
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +28,37 @@ fun GameScreen(
     val currentPlayer = state.players[state.currentPlayerIndex]
     val isHumanTurn = !currentPlayer.isAI
     val canRoll = state.phase == GamePhase.WAITING_FOR_ROLL && isHumanTurn
+
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    // Intercept back button when game is in progress
+    BackHandler(enabled = state.phase != GamePhase.GAME_OVER) {
+        showExitDialog = true
+    }
+
+    // Exit confirmation dialog
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("End Game?") },
+            text = { Text("Are you sure you want to quit? Your game progress will be lost.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExitDialog = false
+                        onGameEnd()
+                    }
+                ) {
+                    Text("Yes, Exit")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Continue Playing")
+                }
+            }
+        )
+    }
 
     // Shake to roll
     DiceController(
