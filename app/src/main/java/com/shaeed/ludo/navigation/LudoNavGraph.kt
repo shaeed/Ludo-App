@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.shaeed.ludo.ui.screen.about.AboutScreen
 import com.shaeed.ludo.ui.screen.game.GameScreen
 import com.shaeed.ludo.ui.screen.home.HomeScreen
 import com.shaeed.ludo.ui.screen.settings.SettingsScreen
@@ -16,7 +17,8 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
         composable(Screen.Home.route) {
             HomeScreen(
                 onPlayClicked = { navController.navigate(Screen.GameSetup.route) },
-                onSettingsClicked = { navController.navigate(Screen.Settings.route) }
+                onSettingsClicked = { navController.navigate(Screen.Settings.route) },
+                onAboutClicked = { navController.navigate(Screen.About.route) }
             )
         }
         composable(Screen.GameSetup.route) {
@@ -40,6 +42,12 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
         }
         composable(Screen.Settings.route) {
             SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onAboutClicked = { navController.navigate(Screen.About.route) }
+            )
+        }
+        composable(Screen.About.route) {
+            AboutScreen(
                 onBack = { navController.popBackStack() }
             )
         }
