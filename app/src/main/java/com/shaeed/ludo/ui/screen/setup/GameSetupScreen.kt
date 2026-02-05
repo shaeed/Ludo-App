@@ -139,6 +139,22 @@ fun GameSetupScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Special rules
+            Text("Special Rules", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            RuleToggle("Pass unused dice to next player", viewModel.passDiceToNextPlayer) {
+                viewModel.togglePassDiceToNextPlayer()
+            }
+            Text(
+                text = "When enabled, if a player can't use their dice roll, it's passed to the next player as a bonus move.",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(

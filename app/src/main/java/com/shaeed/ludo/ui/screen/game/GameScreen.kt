@@ -86,8 +86,10 @@ fun GameScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Show gifted dice value or regular dice
+            val displayDiceValue = state.giftedDice?.value ?: state.dice?.value
             DiceView(
-                value = state.dice?.value,
+                value = displayDiceValue,
                 isRolling = viewModel.isRolling,
                 enabled = canRoll,
                 onRoll = { viewModel.rollDice() }
@@ -101,9 +103,22 @@ fun GameScreen(
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp
                 )
+
+                // Show bonus dice indicator
+                if (state.giftedDice != null || viewModel.isUsingGiftedDice) {
+                    Text(
+                        text = "Bonus dice from previous player!",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
                 Text(
                     text = when {
                         viewModel.isAnimating -> "Moving..."
+                        state.giftedDice != null -> if (isHumanTurn) "Use the bonus dice!" else "AI using bonus..."
+                        viewModel.isUsingGiftedDice -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
                         state.phase == GamePhase.WAITING_FOR_ROLL -> if (isHumanTurn) "Tap dice or shake to roll" else "AI is thinking..."
                         state.phase == GamePhase.WAITING_FOR_MOVE -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
                         state.phase == GamePhase.ROLLING -> "Rolling..."
