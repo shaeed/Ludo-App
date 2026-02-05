@@ -17,7 +17,8 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
         composable(Screen.Home.route) {
             HomeScreen(
                 onPlayClicked = { navController.navigate(Screen.GameSetup.route) },
-                onSettingsClicked = { navController.navigate(Screen.Settings.route) }
+                onSettingsClicked = { navController.navigate(Screen.Settings.route) },
+                onAboutClicked = { navController.navigate(Screen.About.route) }
             )
         }
         composable(Screen.GameSetup.route) {

@@ -12,7 +12,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     onPlayClicked: () -> Unit,
-    onSettingsClicked: () -> Unit
+    onSettingsClicked: () -> Unit,
+    onAboutClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -58,6 +59,14 @@ fun HomeScreen(
             shape = MaterialTheme.shapes.large
         ) {
             Text("Settings", fontSize = 18.sp)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextButton(
+            onClick = onAboutClicked
+        ) {
+            Text("About & Game Rules", fontSize = 14.sp)
         }
     }
 }
