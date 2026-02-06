@@ -172,7 +172,14 @@ fun BoardCanvas(
                     }
                     drawToken(7, 7, cs, tokenAnimation.tokenColor, false, off.second * cs, off.first * cs)
                 }
-                else -> {}
+                is Cell.Base -> {
+                    val basePositions = layout.basePositions(animCell.color)
+                    val player = gameState.players.first { it.color == animCell.color }
+                    val numInBase = player.tokens.count { it.cell is Cell.Base }
+                    val slotIndex = minOf(numInBase, basePositions.size - 1)
+                    val (row, col) = basePositions[slotIndex]
+                    drawToken(row, col, cs, tokenAnimation.tokenColor, false)
+                }
             }
         }
     }

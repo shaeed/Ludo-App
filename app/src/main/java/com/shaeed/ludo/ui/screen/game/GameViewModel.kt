@@ -100,6 +100,9 @@ class GameViewModel : ViewModel() {
             isAnimating = true
             legalMoves = emptyList()
 
+            // Save state before any visual modifications (used for engine processing)
+            val stateForEngine = gameState
+
             // Calculate the path from current cell to destination
             val path = engine.pathCalculator.calculatePath(move.token, move.destination)
 
@@ -112,15 +115,43 @@ class GameViewModel : ViewModel() {
                 )
                 delay(120) // Delay at each cell
             }
+            tokenAnimation = null
+
+            // Animate captured tokens back to base
+            if (move.captures.isNotEmpty()) {
+                // Temporarily update state to show moving token at destination
+                val currentPlayer = gameState.players[gameState.currentPlayerIndex]
+                val updatedTokens = currentPlayer.tokens.map { token ->
+                    if (token.id == move.token.id) token.copy(cell = move.destination) else token
+                }
+                val updatedPlayer = currentPlayer.copy(tokens = updatedTokens)
+                gameState = gameState.copy(
+                    players = gameState.players.mapIndexed { index, player ->
+                        if (index == gameState.currentPlayerIndex) updatedPlayer else player
+                    }
+                )
+
+                for (capturedToken in move.captures) {
+                    val reversePath = engine.pathCalculator.calculateReversePath(capturedToken)
+                    for (cell in reversePath) {
+                        tokenAnimation = TokenAnimation(
+                            tokenId = capturedToken.id,
+                            tokenColor = capturedToken.color,
+                            currentCell = cell
+                        )
+                        delay(120)
+                    }
+                    tokenAnimation = null
+                }
+            }
 
             // Clear animation and apply the final state
-            tokenAnimation = null
             isAnimating = false
 
             if (usingGiftedDice) {
                 // After using gifted dice, resume from the player after the original roller
-                val resumePlayerIndex = engine.getResumePlayerIndexAfterGiftedDice(gameState)
-                val newState = engine.executeMove(gameState, move)
+                val resumePlayerIndex = engine.getResumePlayerIndexAfterGiftedDice(stateForEngine)
+                val newState = engine.executeMove(stateForEngine, move)
 
                 gameState = if (newState.phase != GamePhase.GAME_OVER) {
                     newState.copy(
@@ -135,7 +166,7 @@ class GameViewModel : ViewModel() {
                 }
                 isUsingGiftedDice = false
             } else {
-                gameState = engine.executeMove(gameState, move)
+                gameState = engine.executeMove(stateForEngine, move)
             }
             checkAndHandleTurn()
         }

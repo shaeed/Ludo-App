@@ -49,6 +49,21 @@ class PathCalculator(private val layout: BoardLayout) {
     }
 
     /**
+     * Calculates the reverse path from a token's current position back to base.
+     * Used for animating captured tokens returning home.
+     */
+    fun calculateReversePath(token: Token): List<Cell> {
+        val fullPath = layout.fullPath(token.color)
+        val currentIndex = findPathIndex(token, fullPath) ?: return listOf(Cell.Base(token.color))
+
+        return if (currentIndex > 0) {
+            fullPath.subList(0, currentIndex).reversed()
+        } else {
+            emptyList()
+        }
+    }
+
+    /**
      * Finds the index of the token's current cell within its color's full path.
      */
     private fun findPathIndex(token: Token, path: List<Cell>): Int? {
