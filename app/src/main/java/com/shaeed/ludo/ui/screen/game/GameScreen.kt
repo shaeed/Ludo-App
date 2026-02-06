@@ -28,6 +28,7 @@ fun GameScreen(
     val currentPlayer = state.players[state.currentPlayerIndex]
     val isHumanTurn = !currentPlayer.isAI
     val canRoll = state.phase == GamePhase.WAITING_FOR_ROLL && isHumanTurn
+    val displayDiceValue = state.giftedDice?.value ?: state.dice?.value
 
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -71,16 +72,36 @@ fun GameScreen(
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        // Top player panels
+        // Top player panels with dice
         Row(
             modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            for (i in 0 until minOf(2, state.players.size)) {
+            if (state.players.isNotEmpty()) {
+                PlayerDice(
+                    playerIndex = 0, state = state,
+                    displayDiceValue = displayDiceValue,
+                    isRolling = viewModel.isRolling, canRoll = canRoll,
+                    onRoll = { viewModel.rollDice() }
+                )
                 PlayerPanel(
-                    player = state.players[i],
-                    isCurrentTurn = state.currentPlayerIndex == i,
+                    player = state.players[0],
+                    isCurrentTurn = state.currentPlayerIndex == 0,
                     modifier = Modifier.weight(1f)
+                )
+            }
+            if (state.players.size >= 2) {
+                PlayerPanel(
+                    player = state.players[1],
+                    isCurrentTurn = state.currentPlayerIndex == 1,
+                    modifier = Modifier.weight(1f)
+                )
+                PlayerDice(
+                    playerIndex = 1, state = state,
+                    displayDiceValue = displayDiceValue,
+                    isRolling = viewModel.isRolling, canRoll = canRoll,
+                    onRoll = { viewModel.rollDice() }
                 )
             }
         }
@@ -99,40 +120,51 @@ fun GameScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Bottom player panels
+        // Bottom player panels with dice
         if (state.players.size > 2) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                for (i in state.players.size - 1 downTo 2) {
+                // Bottom-left player (last player)
+                val leftIdx = state.players.size - 1
+                PlayerDice(
+                    playerIndex = leftIdx, state = state,
+                    displayDiceValue = displayDiceValue,
+                    isRolling = viewModel.isRolling, canRoll = canRoll,
+                    onRoll = { viewModel.rollDice() }
+                )
+                PlayerPanel(
+                    player = state.players[leftIdx],
+                    isCurrentTurn = state.currentPlayerIndex == leftIdx,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Bottom-right player (player 2) if 4 players
+                if (state.players.size > 3) {
                     PlayerPanel(
-                        player = state.players[i],
-                        isCurrentTurn = state.currentPlayerIndex == i,
+                        player = state.players[2],
+                        isCurrentTurn = state.currentPlayerIndex == 2,
                         modifier = Modifier.weight(1f)
+                    )
+                    PlayerDice(
+                        playerIndex = 2, state = state,
+                        displayDiceValue = displayDiceValue,
+                        isRolling = viewModel.isRolling, canRoll = canRoll,
+                        onRoll = { viewModel.rollDice() }
                     )
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        // Dice and controls
+        // Turn status
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Show gifted dice value or regular dice
-            val displayDiceValue = state.giftedDice?.value ?: state.dice?.value
-            DiceView(
-                value = displayDiceValue,
-                isRolling = viewModel.isRolling,
-                enabled = canRoll,
-                onRoll = { viewModel.rollDice() }
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "${currentPlayer.name}'s turn",
@@ -197,4 +229,23 @@ fun GameScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PlayerDice(
+    playerIndex: Int,
+    state: com.shaeed.ludo.model.GameState,
+    displayDiceValue: Int?,
+    isRolling: Boolean,
+    canRoll: Boolean,
+    onRoll: () -> Unit
+) {
+    val isThisTurn = state.currentPlayerIndex == playerIndex
+    DiceView(
+        value = if (isThisTurn) displayDiceValue else null,
+        isRolling = isRolling && isThisTurn,
+        enabled = canRoll && isThisTurn,
+        playerColor = state.players[playerIndex].color,
+        onRoll = onRoll
+    )
 }
