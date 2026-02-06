@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Red home area with token cutouts (top-left) -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M24,24h24v24h-24z M32,32m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M40,32m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M32,40m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M40,40m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0" />
+
+    <!-- Green home area with token cutouts (top-right) -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M60,24h24v24h-24z M68,32m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M76,32m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M68,40m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M76,40m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0" />
+
+    <!-- Yellow home area with token cutouts (bottom-left) -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M24,60h24v24h-24z M32,68m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M40,68m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M32,76m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M40,76m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0" />
+
+    <!-- Blue home area with token cutouts (bottom-right) -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M60,60h24v24h-24z M68,68m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M76,68m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M68,76m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0 M76,76m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0" />
+
+    <!-- Home column strips in cross arms -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M25,51h22v6h-22z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M51,25h6v22h-6z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M61,51h22v6h-22z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M51,61h6v22h-6z" />
+
+    <!-- Center square with star cutout -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M48,48h12v12h-12z M54,54m-2,0a2,2 0 1,1 4,0a2,2 0 1,1 -4,0" />
+</vector>
