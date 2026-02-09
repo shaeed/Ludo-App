@@ -65,6 +65,14 @@ class GameViewModel : ViewModel() {
             } else {
                 emptyList()
             }
+
+            // Auto-move if there's only one meaningful choice
+            if (legalMoves.isNotEmpty() && shouldAutoMove(legalMoves)) {
+                delay(400) // Let user see the dice result
+                executeMove(legalMoves.first())
+                return@launch
+            }
+
             checkAndHandleTurn()
         }
     }
@@ -208,8 +216,11 @@ class GameViewModel : ViewModel() {
                     val strategy = getStrategy(currentPlayer.difficulty)
                     val chosenMove = strategy.chooseMove(stateWithDice, moves, layout)
                     executeMove(chosenMove, usingGiftedDice = true)
+                } else if (shouldAutoMove(moves)) {
+                    delay(400) // Let user see the dice result
+                    executeMove(moves.first(), usingGiftedDice = true)
                 }
-                // For human player, wait for tap
+                // For human player with multiple choices, wait for tap
             } else {
                 // Safety fallback: No moves with gifted dice (shouldn't happen as we pre-check)
                 // Resume from the player after the original roller
@@ -256,6 +267,12 @@ class GameViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    private fun shouldAutoMove(moves: List<Move>): Boolean {
+        if (moves.size == 1) return true
+        // All moves go to the same destination (e.g. all tokens at same cell)
+        return moves.all { it.destination == moves.first().destination }
     }
 
     private fun getStrategy(difficulty: AiDifficulty): AiStrategy = when (difficulty) {
