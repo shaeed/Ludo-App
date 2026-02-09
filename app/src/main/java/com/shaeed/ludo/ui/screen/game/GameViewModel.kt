@@ -49,6 +49,7 @@ class GameViewModel : ViewModel() {
     fun getLayout(): BoardLayout = layout
 
     fun rollDice() {
+        if (isRolling) return
         if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_ROLL) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]
