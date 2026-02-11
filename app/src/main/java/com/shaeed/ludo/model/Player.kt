@@ -9,5 +9,6 @@ data class Player(
     val name: String,
     val isAI: Boolean,
     val difficulty: AiDifficulty = AiDifficulty.MEDIUM,
-    val tokens: List<Token>
+    val tokens: List<Token>,
+    val diceValue: Int? = null
 )

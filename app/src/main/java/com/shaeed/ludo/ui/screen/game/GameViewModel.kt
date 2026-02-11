@@ -91,19 +91,6 @@ class GameViewModel : ViewModel() {
         }
     }
 
-    fun onTokenTapped(tokenId: Int, tokenColor: PlayerColor) {
-        if (isAnimating) return
-        if (gameState.phase != GamePhase.WAITING_FOR_MOVE) return
-        val currentPlayer = gameState.players[gameState.currentPlayerIndex]
-        if (currentPlayer.isAI) return
-        if (tokenColor != currentPlayer.color) return
-
-        val move = legalMoves.firstOrNull { it.token.id == tokenId && it.token.color == tokenColor }
-        if (move != null) {
-            executeMove(move, usingGiftedDice = isUsingGiftedDice)
-        }
-    }
-
     private fun executeMove(move: Move, usingGiftedDice: Boolean = false) {
         viewModelScope.launch {
             isAnimating = true

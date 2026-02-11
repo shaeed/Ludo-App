@@ -38,12 +38,18 @@ class GameEngine(
         val dice = DiceResult(value)
         val newConsecutiveSixes = if (value == 6) state.consecutiveSixes + 1 else 0
 
+        // Store dice value in the current player
+        val updatedPlayers = state.players.mapIndexed { index, player ->
+            if (index == state.currentPlayerIndex) player.copy(diceValue = value) else player
+        }
+
         // Check for consecutive sixes forfeit
         if (ruleSet.shouldForfeitForConsecutiveSixes(newConsecutiveSixes, config.maxConsecutiveSixes)) {
-            return advanceToNextPlayer(state.copy(dice = dice, consecutiveSixes = 0))
+            return advanceToNextPlayer(state.copy(players = updatedPlayers, dice = dice, consecutiveSixes = 0))
         }
 
         val newState = state.copy(
+            players = updatedPlayers,
             dice = dice,
             phase = GamePhase.WAITING_FOR_MOVE,
             consecutiveSixes = newConsecutiveSixes
@@ -73,7 +79,12 @@ class GameEngine(
     fun applyGiftedDice(state: GameState): GameState {
         val giftedDice = state.giftedDice ?: return state
 
+        val updatedPlayers = state.players.mapIndexed { index, player ->
+            if (index == state.currentPlayerIndex) player.copy(diceValue = giftedDice.value) else player
+        }
+
         return state.copy(
+            players = updatedPlayers,
             dice = giftedDice,
             giftedDice = null,
             phase = GamePhase.WAITING_FOR_MOVE
@@ -130,11 +141,12 @@ class GameEngine(
 
         val newState = state.copy(players = updatedPlayers)
 
-        // Extra turn on 6 or on capture
+        // Extra turn on 6, capture, or reaching home
         val getsExtraTurn = ruleSet.grantsExtraTurn(diceValue,
             state.consecutiveSixes - 1,
             config.maxConsecutiveSixes)
             || move.captures.isNotEmpty()
+            || move.destination is Cell.Home
 
         return if (getsExtraTurn) {
             newState.copy(
