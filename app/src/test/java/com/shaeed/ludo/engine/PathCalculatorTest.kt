@@ -61,7 +61,7 @@ class PathCalculatorTest {
     @Test
     fun calculateDestination_entersHomeStretch() {
         // RED's last track cell before homestretch is index 51
-        val token = Token(0, PlayerColor.RED, Cell.Normal(51))
+        val token = Token(0, PlayerColor.RED, Cell.Normal(50))
         val dest = calculator.calculateDestination(token, 1)
         assertNotNull(dest)
         assertTrue("Should enter homestretch", dest is Cell.HomeStretch)

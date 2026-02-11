@@ -124,22 +124,13 @@ class StandardBoardLayout : BoardLayout {
         PlayerColor.BLUE to 39
     )
 
-    // The track index just before entering home stretch
-    // (the cell the player passes through to enter their home stretch)
-    private val homeStretchEntries: Map<PlayerColor, Int> = mapOf(
-        PlayerColor.RED to 50,   // After cell 50, RED enters home stretch
-        PlayerColor.GREEN to 11, // After cell 11, GREEN enters home stretch
-        PlayerColor.YELLOW to 24,// After cell 24, YELLOW enters home stretch
-        PlayerColor.BLUE to 37   // After cell 37, BLUE enters home stretch
-    )
-
     // Precomputed full paths for each color: Base → track (full loop) → HomeStretch → Home
     private val fullPaths: Map<PlayerColor, List<Cell>> = PlayerColor.entries.associateWith { color ->
         buildList {
             add(Cell.Base(color))
             val start = startPositions[color]!!
-            // Walk the track from this color's start position for 52 cells
-            for (i in 0 until trackSize) {
+            // Walk the track from this color's start position for 51 cells
+            for (i in 0 until trackSize - 1) {
                 val trackIndex = (start + i) % trackSize
                 add(Cell.Normal(trackIndex, trackIndex in safePositions))
             }
@@ -153,8 +144,6 @@ class StandardBoardLayout : BoardLayout {
     }
 
     override fun startPosition(color: PlayerColor): Int = startPositions[color]!!
-
-    override fun homeStretchEntry(color: PlayerColor): Int = homeStretchEntries[color]!!
 
     override fun fullPath(color: PlayerColor): List<Cell> = fullPaths[color]!!
 
