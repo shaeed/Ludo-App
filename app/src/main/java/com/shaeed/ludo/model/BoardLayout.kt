@@ -7,7 +7,6 @@ interface BoardLayout {
     val safePositions: Set<Int>
 
     fun startPosition(color: PlayerColor): Int
-    fun homeStretchEntry(color: PlayerColor): Int
     fun fullPath(color: PlayerColor): List<Cell>
     fun cellToGrid(cell: Cell): Pair<Int, Int>
     fun basePositions(color: PlayerColor): List<Pair<Int, Int>>

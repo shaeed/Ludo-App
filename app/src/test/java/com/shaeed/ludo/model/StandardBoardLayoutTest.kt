@@ -42,14 +42,6 @@ class StandardBoardLayoutTest {
     }
 
     @Test
-    fun homeStretchEntries_areCorrect() {
-        assertEquals(51, layout.homeStretchEntry(PlayerColor.RED))
-        assertEquals(12, layout.homeStretchEntry(PlayerColor.GREEN))
-        assertEquals(25, layout.homeStretchEntry(PlayerColor.YELLOW))
-        assertEquals(38, layout.homeStretchEntry(PlayerColor.BLUE))
-    }
-
-    @Test
     fun fullPath_startsWithBase_endsWithHome() {
         for (color in PlayerColor.entries) {
             val path = layout.fullPath(color)
@@ -60,10 +52,10 @@ class StandardBoardLayoutTest {
 
     @Test
     fun fullPath_hasCorrectLength() {
-        // Base(1) + Track(52) + HomeStretch(5) + Home(1) = 59
+        // Base(1) + Track(51) + HomeStretch(5) + Home(1) = 58
         for (color in PlayerColor.entries) {
             val path = layout.fullPath(color)
-            assertEquals(59, path.size)
+            assertEquals(58, path.size)
         }
     }
 
@@ -71,10 +63,10 @@ class StandardBoardLayoutTest {
     fun fullPath_containsAllTrackCells() {
         val path = layout.fullPath(PlayerColor.RED)
         val trackCells = path.filterIsInstance<Cell.Normal>()
-        assertEquals(52, trackCells.size)
+        assertEquals(51, trackCells.size)
         // Should cover all 52 indices
         val indices = trackCells.map { it.index }.toSet()
-        assertEquals((0 until 52).toSet(), indices)
+        assertEquals((0 until 51).toSet(), indices)
     }
 
     @Test
