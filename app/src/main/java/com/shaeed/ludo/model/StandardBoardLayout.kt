@@ -127,10 +127,10 @@ class StandardBoardLayout : BoardLayout {
     // The track index just before entering home stretch
     // (the cell the player passes through to enter their home stretch)
     private val homeStretchEntries: Map<PlayerColor, Int> = mapOf(
-        PlayerColor.RED to 51,   // After cell 51, RED enters home stretch
-        PlayerColor.GREEN to 12, // After cell 12, GREEN enters home stretch
-        PlayerColor.YELLOW to 25,// After cell 25, YELLOW enters home stretch
-        PlayerColor.BLUE to 38   // After cell 38, BLUE enters home stretch
+        PlayerColor.RED to 50,   // After cell 50, RED enters home stretch
+        PlayerColor.GREEN to 11, // After cell 11, GREEN enters home stretch
+        PlayerColor.YELLOW to 24,// After cell 24, YELLOW enters home stretch
+        PlayerColor.BLUE to 37   // After cell 37, BLUE enters home stretch
     )
 
     // Precomputed full paths for each color: Base → track (full loop) → HomeStretch → Home
