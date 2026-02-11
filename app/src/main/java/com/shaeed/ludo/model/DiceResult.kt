@@ -4,5 +4,5 @@ import java.util.UUID
 
 data class DiceResult(
     val value: Int,
-    val rollId: String = UUID.randomUUID().toString()
+    // val rollId: String = UUID.randomUUID().toString()
 )
