@@ -140,11 +140,12 @@ class GameEngine(
 
         val newState = state.copy(players = updatedPlayers)
 
-        // Extra turn on 6 or on capture
+        // Extra turn on 6, capture, or reaching home
         val getsExtraTurn = ruleSet.grantsExtraTurn(diceValue,
             state.consecutiveSixes - 1,
             config.maxConsecutiveSixes)
             || move.captures.isNotEmpty()
+            || move.destination is Cell.Home
 
         return if (getsExtraTurn) {
             newState.copy(
