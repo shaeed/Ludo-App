@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shaeed.ludo.model.GamePhase
+import com.shaeed.ludo.model.GameState
 import com.shaeed.ludo.ui.components.DiceView
 import com.shaeed.ludo.ui.components.PlayerPanel
 
@@ -28,7 +29,6 @@ fun GameScreen(
     val currentPlayer = state.players[state.currentPlayerIndex]
     val isHumanTurn = !currentPlayer.isAI
     val canRoll = state.phase == GamePhase.WAITING_FOR_ROLL && isHumanTurn
-    val displayDiceValue = state.giftedDice?.value ?: state.dice?.value
 
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -81,7 +81,6 @@ fun GameScreen(
             if (state.players.isNotEmpty()) {
                 PlayerDice(
                     playerIndex = 0, state = state,
-                    displayDiceValue = displayDiceValue,
                     isRolling = viewModel.isRolling, canRoll = canRoll,
                     onRoll = { viewModel.rollDice() }
                 )
@@ -99,7 +98,6 @@ fun GameScreen(
                 )
                 PlayerDice(
                     playerIndex = 1, state = state,
-                    displayDiceValue = displayDiceValue,
                     isRolling = viewModel.isRolling, canRoll = canRoll,
                     onRoll = { viewModel.rollDice() }
                 )
@@ -131,7 +129,6 @@ fun GameScreen(
                 val leftIdx = state.players.size - 1
                 PlayerDice(
                     playerIndex = leftIdx, state = state,
-                    displayDiceValue = displayDiceValue,
                     isRolling = viewModel.isRolling, canRoll = canRoll,
                     onRoll = { viewModel.rollDice() }
                 )
@@ -150,7 +147,6 @@ fun GameScreen(
                     )
                     PlayerDice(
                         playerIndex = 2, state = state,
-                        displayDiceValue = displayDiceValue,
                         isRolling = viewModel.isRolling, canRoll = canRoll,
                         onRoll = { viewModel.rollDice() }
                     )
@@ -234,15 +230,14 @@ fun GameScreen(
 @Composable
 private fun PlayerDice(
     playerIndex: Int,
-    state: com.shaeed.ludo.model.GameState,
-    displayDiceValue: Int?,
+    state: GameState,
     isRolling: Boolean,
     canRoll: Boolean,
     onRoll: () -> Unit
 ) {
     val isThisTurn = state.currentPlayerIndex == playerIndex
     DiceView(
-        value = if (isThisTurn) displayDiceValue else null,
+        value = state.players[playerIndex].diceValue,
         isRolling = isRolling && isThisTurn,
         enabled = canRoll && isThisTurn,
         playerColor = state.players[playerIndex].color,

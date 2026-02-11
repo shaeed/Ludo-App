@@ -37,12 +37,18 @@ class GameEngine(
         val dice = DiceResult(value)
         val newConsecutiveSixes = if (value == 6) state.consecutiveSixes + 1 else 0
 
+        // Store dice value in the current player
+        val updatedPlayers = state.players.mapIndexed { index, player ->
+            if (index == state.currentPlayerIndex) player.copy(diceValue = value) else player
+        }
+
         // Check for consecutive sixes forfeit
         if (ruleSet.shouldForfeitForConsecutiveSixes(newConsecutiveSixes, config.maxConsecutiveSixes)) {
-            return advanceToNextPlayer(state.copy(dice = dice, consecutiveSixes = 0))
+            return advanceToNextPlayer(state.copy(players = updatedPlayers, dice = dice, consecutiveSixes = 0))
         }
 
         val newState = state.copy(
+            players = updatedPlayers,
             dice = dice,
             phase = GamePhase.WAITING_FOR_MOVE,
             consecutiveSixes = newConsecutiveSixes
@@ -72,7 +78,12 @@ class GameEngine(
     fun applyGiftedDice(state: GameState): GameState {
         val giftedDice = state.giftedDice ?: return state
 
+        val updatedPlayers = state.players.mapIndexed { index, player ->
+            if (index == state.currentPlayerIndex) player.copy(diceValue = giftedDice.value) else player
+        }
+
         return state.copy(
+            players = updatedPlayers,
             dice = giftedDice,
             giftedDice = null,
             phase = GamePhase.WAITING_FOR_MOVE
