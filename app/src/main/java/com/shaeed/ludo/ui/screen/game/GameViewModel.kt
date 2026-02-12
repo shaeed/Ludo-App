@@ -73,11 +73,18 @@ class GameViewModel : ViewModel() {
 
     fun saveGame(context: Context, name: String): SavedGame {
         val repo = GameRepository(context)
+        val stateToSave = gameState.copy(
+            phase = GamePhase.WAITING_FOR_ROLL,
+            dice = null,
+            giftedDice = null,
+            giftedDiceOriginalPlayerIndex = null,
+            consecutiveSixes = 0
+        )
         val id = currentSaveId
         val saved = if (id != null) {
-            repo.update(id, gameState, config, name)
+            repo.update(id, stateToSave, config, name)
         } else {
-            repo.save(gameState, config, name)
+            repo.save(stateToSave, config, name)
         }
         currentSaveId = saved.id
         return saved
