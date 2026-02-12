@@ -1,6 +1,9 @@
 package com.shaeed.ludo.ui.screen.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -8,6 +11,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.shaeed.ludo.model.PlayerColor
+import com.shaeed.ludo.model.TokenStyle
+import com.shaeed.ludo.model.TokenStyleHolder
+import com.shaeed.ludo.ui.components.TokenPiece
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +60,56 @@ fun SettingsScreen(
             )
 
             HorizontalDivider()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── Token Style picker ──
+            Text(
+                text = "Token Style",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val selectedStyle = TokenStyleHolder.current
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(TokenStyle.entries.toList()) { style ->
+                    val isSelected = style == selectedStyle
+                    val border = if (isSelected) {
+                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                    } else {
+                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    }
+
+                    OutlinedCard(
+                        onClick = { TokenStyleHolder.current = style },
+                        border = border,
+                        modifier = Modifier.width(80.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp, horizontal = 4.dp)
+                        ) {
+                            TokenPiece(
+                                color = PlayerColor.RED,
+                                size = 36.dp,
+                                tokenStyle = style
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = style.displayName,
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

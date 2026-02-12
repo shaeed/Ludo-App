@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import com.shaeed.ludo.engine.Move
 import com.shaeed.ludo.model.*
-import com.shaeed.ludo.ui.components.colorForPlayer
+import com.shaeed.ludo.ui.components.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -340,27 +340,18 @@ private fun DrawScope.drawStackedTokens(
     }
 }
 
-// ── Token piece (3D cone-shaped Ludo token) ──
+// ── Token piece (style-aware) ──
 
 private fun DrawScope.drawToken(
     row: Int, col: Int, cs: Float, color: PlayerColor, isMovable: Boolean,
-    offsetX: Float = 0f, offsetY: Float = 0f, scale: Float = 1f
+    offsetX: Float = 0f, offsetY: Float = 0f, scale: Float = 1f,
+    tokenStyle: TokenStyle = TokenStyleHolder.current
 ) {
     val center = Offset((col + 0.5f) * cs + offsetX, (row + 0.5f) * cs + offsetY)
     val radius = cs * 0.35f * scale
     val tokenColor = colorForPlayer(color)
-
-    // Color variants for 3D shading
-    val darkColor = Color(
-        red = tokenColor.red * 0.55f,
-        green = tokenColor.green * 0.55f,
-        blue = tokenColor.blue * 0.55f
-    )
-    val lightColor = Color(
-        red = minOf(1f, tokenColor.red + (1f - tokenColor.red) * 0.45f),
-        green = minOf(1f, tokenColor.green + (1f - tokenColor.green) * 0.45f),
-        blue = minOf(1f, tokenColor.blue + (1f - tokenColor.blue) * 0.45f)
-    )
+    val darkColor = darkenColor(tokenColor)
+    val lightColor = lightenColor(tokenColor)
 
     // Movable glow
     if (isMovable) {
@@ -368,35 +359,11 @@ private fun DrawScope.drawToken(
         drawCircle(Color(0xFF4CAF50).copy(alpha = 0.5f), radius * 1.4f, center, style = Stroke(2.5f * scale))
     }
 
-    // Drop shadow
-    drawCircle(
-        Color.Black.copy(alpha = 0.22f), radius,
-        Offset(center.x + 1.5f * scale, center.y + 2f * scale)
-    )
-
-    // Base ring (dark edge — the flat base of the cone)
-    drawCircle(darkColor, radius, center)
-
-    // Cone body (main color, inset from base)
-    drawCircle(tokenColor, radius * 0.85f, center)
-
-    // Dome highlight (lighter center — convex surface catching light)
-    drawCircle(lightColor.copy(alpha = 0.6f), radius * 0.55f, center)
-
-    // Top knob (small sphere at the peak)
-    drawCircle(tokenColor, radius * 0.3f, center)
-    drawCircle(darkColor.copy(alpha = 0.5f), radius * 0.3f, center, style = Stroke(1f * scale))
-
-    // Outer border
-    drawCircle(Color.Black.copy(alpha = 0.3f), radius, center, style = Stroke(1.5f * scale))
-
-    // Specular highlights (glossy plastic reflection)
-    drawCircle(
-        Color.White.copy(alpha = 0.55f), radius * 0.14f,
-        Offset(center.x - radius * 0.25f, center.y - radius * 0.3f)
-    )
-    drawCircle(
-        Color.White.copy(alpha = 0.2f), radius * 0.22f,
-        Offset(center.x - radius * 0.18f, center.y - radius * 0.18f)
-    )
+    when (tokenStyle) {
+        TokenStyle.CLASSIC_CONE -> drawConeToken(center, radius, tokenColor, darkColor, lightColor)
+        TokenStyle.FLAT_DISC -> drawFlatDiscToken(center, radius, tokenColor, darkColor)
+        TokenStyle.STAR -> drawStarToken(center, radius, tokenColor, darkColor)
+        TokenStyle.RING -> drawRingToken(center, radius, tokenColor, darkColor)
+        TokenStyle.PAWN -> drawPawnToken(center, radius, tokenColor, darkColor, lightColor)
+    }
 }
