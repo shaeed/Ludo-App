@@ -1,11 +1,14 @@
 package com.shaeed.ludo.ui.screen.game
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shaeed.ludo.ai.*
+import com.shaeed.ludo.data.GameRepository
+import com.shaeed.ludo.data.SavedGame
 import com.shaeed.ludo.engine.GameEngine
 import com.shaeed.ludo.engine.Move
 import com.shaeed.ludo.model.*
@@ -18,13 +21,19 @@ data class TokenAnimation(
     val currentCell: Cell
 )
 
+object RestoredGameHolder {
+    var pending: SavedGame? = null
+}
+
 class GameViewModel : ViewModel() {
 
     private val layout: BoardLayout = StandardBoardLayout()
-    private val config: GameConfig = GameConfigHolder.current
-    private val engine = GameEngine(layout, config)
+    private val config: GameConfig
+    private val engine: GameEngine
 
-    var gameState by mutableStateOf(engine.createInitialState())
+    var gameState by mutableStateOf<GameState>(
+        GameState(emptyList(), 0, null, GamePhase.WAITING_FOR_ROLL, null)
+    )
         private set
 
     var legalMoves by mutableStateOf<List<Move>>(emptyList())
@@ -43,10 +52,27 @@ class GameViewModel : ViewModel() {
         private set
 
     init {
+        val restored = RestoredGameHolder.pending
+        if (restored != null) {
+            RestoredGameHolder.pending = null
+            GameConfigHolder.current = restored.gameConfig
+            config = restored.gameConfig
+            engine = GameEngine(layout, config)
+            gameState = restored.gameState
+        } else {
+            config = GameConfigHolder.current
+            engine = GameEngine(layout, config)
+            gameState = engine.createInitialState()
+        }
         checkAndHandleTurn()
     }
 
     fun getLayout(): BoardLayout = layout
+
+    fun saveGame(context: Context, name: String): SavedGame {
+        val repo = GameRepository(context)
+        return repo.save(gameState, config, name)
+    }
 
     fun rollDice() {
         if (isRolling) return

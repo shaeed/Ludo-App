@@ -7,7 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.shaeed.ludo.ui.screen.about.AboutScreen
 import com.shaeed.ludo.ui.screen.game.GameScreen
+import com.shaeed.ludo.ui.screen.game.RestoredGameHolder
 import com.shaeed.ludo.ui.screen.home.HomeScreen
+import com.shaeed.ludo.ui.screen.savedgames.SavedGamesScreen
 import com.shaeed.ludo.ui.screen.settings.SettingsScreen
 import com.shaeed.ludo.ui.screen.setup.GameSetupScreen
 
@@ -17,6 +19,7 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
         composable(Screen.Home.route) {
             HomeScreen(
                 onPlayClicked = { navController.navigate(Screen.GameSetup.route) },
+                onSavedGamesClicked = { navController.navigate(Screen.SavedGames.route) },
                 onSettingsClicked = { navController.navigate(Screen.Settings.route) },
                 onAboutClicked = { navController.navigate(Screen.About.route) }
             )
@@ -36,6 +39,17 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 onGameEnd = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Screen.SavedGames.route) {
+            SavedGamesScreen(
+                onBack = { navController.popBackStack() },
+                onResume = { savedGame ->
+                    RestoredGameHolder.pending = savedGame
+                    navController.navigate(Screen.Game.route) {
+                        popUpTo(Screen.Home.route)
                     }
                 }
             )

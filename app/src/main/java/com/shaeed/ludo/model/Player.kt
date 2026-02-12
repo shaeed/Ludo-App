@@ -1,9 +1,13 @@
 package com.shaeed.ludo.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class AiDifficulty {
     EASY, MEDIUM, HARD
 }
 
+@Serializable
 data class Player(
     val color: PlayerColor,
     val name: String,

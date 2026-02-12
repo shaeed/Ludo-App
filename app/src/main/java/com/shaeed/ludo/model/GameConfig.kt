@@ -1,5 +1,8 @@
 package com.shaeed.ludo.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class PlayerConfig(
     val color: PlayerColor,
     val name: String,
@@ -7,6 +10,7 @@ data class PlayerConfig(
     val difficulty: AiDifficulty = AiDifficulty.MEDIUM
 )
 
+@Serializable
 data class GameConfig(
     val playerConfigs: List<PlayerConfig>,
     val enterOnSixOnly: Boolean = true,
