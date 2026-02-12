@@ -20,6 +20,9 @@ import com.shaeed.ludo.model.GamePhase
 import com.shaeed.ludo.model.GameState
 import com.shaeed.ludo.ui.components.DiceView
 import com.shaeed.ludo.ui.components.PlayerPanel
+import com.shaeed.ludo.ui.components.TokenPiece
+import com.shaeed.ludo.ui.components.colorForPlayer
+import com.shaeed.ludo.ui.components.lightColorForPlayer
 
 @Composable
 fun GameScreen(
@@ -171,43 +174,62 @@ fun GameScreen(
         }
 
         // Turn status
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "${currentPlayer.name}'s turn",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp
-                )
+        val playerColor = colorForPlayer(currentPlayer.color)
+        val playerBg = lightColorForPlayer(currentPlayer.color).copy(alpha = 0.25f)
+        val showBonus = state.giftedDice != null || viewModel.isUsingGiftedDice
 
-                // Show bonus dice indicator
-                if (state.giftedDice != null || viewModel.isUsingGiftedDice) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = playerBg),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                TokenPiece(color = currentPlayer.color, size = 28.dp)
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Bonus dice from previous player!",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "${currentPlayer.name}'s turn",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = playerColor
+                    )
+                    Text(
+                        text = when {
+                            viewModel.isAnimating -> "Moving..."
+                            state.giftedDice != null -> if (isHumanTurn) "Use the bonus dice!" else "AI using bonus..."
+                            viewModel.isUsingGiftedDice -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
+                            state.phase == GamePhase.WAITING_FOR_ROLL -> if (isHumanTurn) "Tap dice or shake to roll" else "AI is thinking..."
+                            state.phase == GamePhase.WAITING_FOR_MOVE -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
+                            state.phase == GamePhase.ROLLING -> "Rolling..."
+                            state.phase == GamePhase.ANIMATING -> "Moving..."
+                            state.phase == GamePhase.GAME_OVER -> "Game Over!"
+                            else -> ""
+                        },
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                Text(
-                    text = when {
-                        viewModel.isAnimating -> "Moving..."
-                        state.giftedDice != null -> if (isHumanTurn) "Use the bonus dice!" else "AI using bonus..."
-                        viewModel.isUsingGiftedDice -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
-                        state.phase == GamePhase.WAITING_FOR_ROLL -> if (isHumanTurn) "Tap dice or shake to roll" else "AI is thinking..."
-                        state.phase == GamePhase.WAITING_FOR_MOVE -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
-                        state.phase == GamePhase.ROLLING -> "Rolling..."
-                        state.phase == GamePhase.ANIMATING -> "Moving..."
-                        state.phase == GamePhase.GAME_OVER -> "Game Over!"
-                        else -> ""
-                    },
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (showBonus) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            text = "BONUS",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             }
         }
 
