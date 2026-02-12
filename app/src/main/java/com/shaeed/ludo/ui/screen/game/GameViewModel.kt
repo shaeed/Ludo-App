@@ -69,6 +69,8 @@ class GameViewModel : ViewModel() {
         checkAndHandleTurn()
     }
 
+    val friendMode: Boolean get() = config.friendMode
+
     fun getLayout(): BoardLayout = layout
 
     fun saveGame(context: Context, name: String): SavedGame {

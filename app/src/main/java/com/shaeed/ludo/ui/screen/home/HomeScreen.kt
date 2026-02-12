@@ -3,24 +3,18 @@ package com.shaeed.ludo.ui.screen.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shaeed.ludo.model.GameConfigHolder
 
 @Composable
 fun HomeScreen(
     onPlayClicked: () -> Unit,
     onSavedGamesClicked: () -> Unit,
     onSettingsClicked: () -> Unit,
-    onAboutClicked: () -> Unit,
-    onFriendModeChanged: (Boolean) -> Unit
+    onAboutClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -44,35 +38,7 @@ fun HomeScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
-
-        var friendMode by remember { mutableStateOf(GameConfigHolder.current.friendMode) }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "Friend Mode",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    "Diagonal players can't capture each other (4-player)",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Switch(
-                checked = friendMode,
-                onCheckedChange = {
-                    friendMode = it
-                    onFriendModeChanged(it)
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(64.dp))
 
         Button(
             onClick = onPlayClicked,

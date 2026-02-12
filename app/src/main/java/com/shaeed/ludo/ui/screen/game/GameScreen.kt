@@ -216,6 +216,21 @@ fun GameScreen(
                     )
                 }
 
+                if (viewModel.friendMode) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            text = "FRIENDS",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
+                }
+
                 if (showBonus) {
                     Surface(
                         color = MaterialTheme.colorScheme.primary,
