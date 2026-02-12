@@ -1,5 +1,8 @@
 package com.shaeed.ludo.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GameState(
     val players: List<Player>,
     val currentPlayerIndex: Int,
@@ -8,5 +11,5 @@ data class GameState(
     val winner: PlayerColor?,
     val consecutiveSixes: Int = 0,
     val giftedDice: DiceResult? = null,
-    val giftedDiceOriginalPlayerIndex: Int? = null  // Track who originally rolled the gifted dice
+    val giftedDiceOriginalPlayerIndex: Int? = null
 )

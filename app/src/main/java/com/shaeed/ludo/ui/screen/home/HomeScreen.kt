@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     onPlayClicked: () -> Unit,
+    onSavedGamesClicked: () -> Unit,
     onSettingsClicked: () -> Unit,
     onAboutClicked: () -> Unit
 ) {
@@ -47,6 +48,18 @@ fun HomeScreen(
             shape = MaterialTheme.shapes.large
         ) {
             Text("Play", fontSize = 18.sp)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = onSavedGamesClicked,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text("Saved Games", fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

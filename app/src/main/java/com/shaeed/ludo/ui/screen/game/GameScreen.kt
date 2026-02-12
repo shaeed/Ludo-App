@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ fun GameScreen(
     val currentPlayer = state.players[state.currentPlayerIndex]
     val isHumanTurn = !currentPlayer.isAI
     val canRoll = state.phase == GamePhase.WAITING_FOR_ROLL && isHumanTurn
+    val context = LocalContext.current
 
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -42,7 +44,7 @@ fun GameScreen(
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             title = { Text("End Game?") },
-            text = { Text("Are you sure you want to quit? Your game progress will be lost.") },
+            text = { Text("Would you like to save your game before exiting?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -50,12 +52,24 @@ fun GameScreen(
                         onGameEnd()
                     }
                 ) {
-                    Text("Yes, Exit")
+                    Text("Exit Without Saving")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showExitDialog = false }) {
-                    Text("Continue Playing")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = { showExitDialog = false }) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val players = state.players.joinToString(" vs ") { it.name }
+                            viewModel.saveGame(context, players)
+                            showExitDialog = false
+                            onGameEnd()
+                        }
+                    ) {
+                        Text("Save & Exit")
+                    }
                 }
             }
         )
@@ -70,7 +84,8 @@ fun GameScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.Center
     ) {
         // Top player panels with dice
         Row(

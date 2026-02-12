@@ -1,8 +1,8 @@
 package com.shaeed.ludo.model
 
-import java.util.UUID
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class DiceResult(
     val value: Int,
-    // val rollId: String = UUID.randomUUID().toString()
 )
