@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.shaeed.ludo.ui.screen.about.AboutScreen
 import com.shaeed.ludo.ui.screen.game.GameScreen
 import com.shaeed.ludo.ui.screen.game.RestoredGameHolder
+import com.shaeed.ludo.model.GameConfigHolder
 import com.shaeed.ludo.ui.screen.home.HomeScreen
 import com.shaeed.ludo.ui.screen.savedgames.SavedGamesScreen
 import com.shaeed.ludo.ui.screen.settings.SettingsScreen
@@ -21,7 +22,10 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 onPlayClicked = { navController.navigate(Screen.GameSetup.route) },
                 onSavedGamesClicked = { navController.navigate(Screen.SavedGames.route) },
                 onSettingsClicked = { navController.navigate(Screen.Settings.route) },
-                onAboutClicked = { navController.navigate(Screen.About.route) }
+                onAboutClicked = { navController.navigate(Screen.About.route) },
+                onFriendModeChanged = { enabled ->
+                    GameConfigHolder.current = GameConfigHolder.current.copy(friendMode = enabled)
+                }
             )
         }
         composable(Screen.GameSetup.route) {

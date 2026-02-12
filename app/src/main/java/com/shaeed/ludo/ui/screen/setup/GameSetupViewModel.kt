@@ -28,6 +28,8 @@ class GameSetupViewModel : ViewModel() {
         private set
     var passDiceToNextPlayer by mutableStateOf(false)
         private set
+    var friendMode by mutableStateOf(GameConfigHolder.current.friendMode)
+        private set
 
     fun updatePlayerCount(count: Int) {
         playerCount = count.coerceIn(2, 4)
@@ -58,6 +60,7 @@ class GameSetupViewModel : ViewModel() {
     fun toggleSafeZones() { safeZonesEnabled = !safeZonesEnabled }
     fun updateMaxConsecutiveSixes(value: Int) { maxConsecutiveSixes = value.coerceIn(1, 5) }
     fun togglePassDiceToNextPlayer() { passDiceToNextPlayer = !passDiceToNextPlayer }
+    fun toggleFriendMode() { friendMode = !friendMode }
 
     fun buildConfig(): GameConfig {
         val activePlayers = playerConfigs.take(playerCount)
@@ -66,7 +69,8 @@ class GameSetupViewModel : ViewModel() {
             enterOnSixOnly = enterOnSixOnly,
             safeZonesEnabled = safeZonesEnabled,
             maxConsecutiveSixes = maxConsecutiveSixes,
-            passDiceToNextPlayer = passDiceToNextPlayer
+            passDiceToNextPlayer = passDiceToNextPlayer,
+            friendMode = friendMode
         )
     }
 }

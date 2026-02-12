@@ -126,6 +126,18 @@ fun GameSetupScreen(
                 modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
             )
 
+            if (viewModel.playerCount == 4) {
+                RuleToggle("Friend Mode (diagonal allies)", viewModel.friendMode) {
+                    viewModel.toggleFriendMode()
+                }
+                Text(
+                    text = "Diagonal players (Red-Yellow, Green-Blue) can't capture each other.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = {
