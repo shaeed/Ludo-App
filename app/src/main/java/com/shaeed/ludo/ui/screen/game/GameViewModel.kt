@@ -30,6 +30,7 @@ class GameViewModel : ViewModel() {
     private val layout: BoardLayout = StandardBoardLayout()
     private val config: GameConfig
     private val engine: GameEngine
+    private var currentSaveId: String? = null
 
     var gameState by mutableStateOf<GameState>(
         GameState(emptyList(), 0, null, GamePhase.WAITING_FOR_ROLL, null)
@@ -59,6 +60,7 @@ class GameViewModel : ViewModel() {
             config = restored.gameConfig
             engine = GameEngine(layout, config)
             gameState = restored.gameState
+            currentSaveId = restored.id
         } else {
             config = GameConfigHolder.current
             engine = GameEngine(layout, config)
@@ -71,7 +73,14 @@ class GameViewModel : ViewModel() {
 
     fun saveGame(context: Context, name: String): SavedGame {
         val repo = GameRepository(context)
-        return repo.save(gameState, config, name)
+        val id = currentSaveId
+        val saved = if (id != null) {
+            repo.update(id, gameState, config, name)
+        } else {
+            repo.save(gameState, config, name)
+        }
+        currentSaveId = saved.id
+        return saved
     }
 
     fun rollDice() {

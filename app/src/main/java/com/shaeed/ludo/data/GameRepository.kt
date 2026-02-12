@@ -49,6 +49,19 @@ class GameRepository(context: Context) {
         }
     }
 
+    fun update(id: String, gameState: GameState, gameConfig: GameConfig, name: String): SavedGame {
+        val savedGame = SavedGame(
+            id = id,
+            name = name,
+            timestamp = System.currentTimeMillis(),
+            gameState = gameState,
+            gameConfig = gameConfig
+        )
+        val file = File(savesDir, "$id.json")
+        file.writeText(json.encodeToString(savedGame))
+        return savedGame
+    }
+
     fun delete(id: String) {
         File(savesDir, "$id.json").delete()
     }
