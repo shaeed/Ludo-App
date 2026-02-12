@@ -16,7 +16,8 @@ data class GameConfig(
     val enterOnSixOnly: Boolean = true,
     val safeZonesEnabled: Boolean = true,
     val maxConsecutiveSixes: Int = 3,
-    val passDiceToNextPlayer: Boolean = false
+    val passDiceToNextPlayer: Boolean = false,
+    val friendMode: Boolean = false
 )
 
 object GameConfigHolder {

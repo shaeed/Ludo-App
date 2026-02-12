@@ -2,6 +2,7 @@ package com.shaeed.ludo.engine
 
 import com.shaeed.ludo.model.Cell
 import com.shaeed.ludo.model.GameConfig
+import com.shaeed.ludo.model.PlayerColor
 import com.shaeed.ludo.model.Token
 
 class StandardRuleSet(private val config: GameConfig) : RuleSet {
@@ -22,9 +23,17 @@ class StandardRuleSet(private val config: GameConfig) : RuleSet {
 
         return allTokens.filter { other ->
             other.color != movingToken.color &&
+            !(config.friendMode && areFriends(movingToken.color, other.color)) &&
             other.cell is Cell.Normal &&
             (other.cell as Cell.Normal).index == destination.index
         }
+    }
+
+    private fun areFriends(a: PlayerColor, b: PlayerColor): Boolean {
+        return (a == PlayerColor.RED && b == PlayerColor.YELLOW) ||
+               (a == PlayerColor.YELLOW && b == PlayerColor.RED) ||
+               (a == PlayerColor.GREEN && b == PlayerColor.BLUE) ||
+               (a == PlayerColor.BLUE && b == PlayerColor.GREEN)
     }
 
     override fun requiresExactRoll(): Boolean = true
