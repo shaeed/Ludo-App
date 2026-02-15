@@ -4,13 +4,19 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.shaeed.ludo.audio.SoundManagerHolder
+import com.shaeed.ludo.data.UserPreferences
 import com.shaeed.ludo.model.PlayerColor
 import com.shaeed.ludo.model.TokenStyle
 import com.shaeed.ludo.model.TokenStyleHolder
@@ -22,8 +28,12 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onAboutClicked: () -> Unit
 ) {
-    var soundEnabled by remember { mutableStateOf(true) }
-    var shakeToRollEnabled by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val prefs = remember { UserPreferences(context) }
+
+    var soundEnabled by remember { mutableStateOf(prefs.soundEnabled) }
+    var shakeToRollEnabled by remember { mutableStateOf(prefs.shakeToRollEnabled) }
+    var activePreset by remember { mutableStateOf(prefs.activePreset) }
 
     Scaffold(
         topBar = {
@@ -42,12 +52,17 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             SettingRow(
                 title = "Sound Effects",
                 description = "Play sound effects during the game",
                 checked = soundEnabled,
-                onCheckedChange = { soundEnabled = it }
+                onCheckedChange = {
+                    soundEnabled = it
+                    prefs.soundEnabled = it
+                    SoundManagerHolder.instance.setEnabled(it)
+                }
             )
 
             HorizontalDivider()
@@ -56,7 +71,10 @@ fun SettingsScreen(
                 title = "Shake to Roll",
                 description = "Shake your device to roll the dice",
                 checked = shakeToRollEnabled,
-                onCheckedChange = { shakeToRollEnabled = it }
+                onCheckedChange = {
+                    shakeToRollEnabled = it
+                    prefs.shakeToRollEnabled = it
+                }
             )
 
             HorizontalDivider()
@@ -85,7 +103,10 @@ fun SettingsScreen(
                     }
 
                     OutlinedCard(
-                        onClick = { TokenStyleHolder.current = style },
+                        onClick = {
+                            TokenStyleHolder.current = style
+                            prefs.tokenStyle = style
+                        },
                         border = border,
                         modifier = Modifier.width(80.dp)
                     ) {
@@ -114,23 +135,69 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Default Rule Presets",
+                text = "Rule Presets",
                 style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "Sets the rules for new games",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedButton(
-                onClick = { /* Apply classic rules — these are already the defaults */ },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Classic Rules (Enter on 6, Safe Zones)")
+            val isClassic = activePreset == "classic"
+            val isCasual = activePreset == "casual"
+
+            if (isClassic) {
+                Button(
+                    onClick = { },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Classic Rules (Enter on 6, Safe Zones)")
+                }
+            } else {
+                OutlinedButton(
+                    onClick = {
+                        prefs.applyClassicPreset()
+                        activePreset = "classic"
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Classic Rules (Enter on 6, Safe Zones)")
+                }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = { /* Apply casual rules */ },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Casual Rules (Enter on 1 or 6)")
+
+            if (isCasual) {
+                Button(
+                    onClick = { },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Casual Rules (Enter on 1 or 6)")
+                }
+            } else {
+                OutlinedButton(
+                    onClick = {
+                        prefs.applyCasualPreset()
+                        activePreset = "casual"
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Casual Rules (Enter on 1 or 6)")
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))

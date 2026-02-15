@@ -7,6 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shaeed.ludo.ai.*
+import com.shaeed.ludo.audio.GameSound
+import com.shaeed.ludo.audio.SoundManagerHolder
 import com.shaeed.ludo.data.GameRepository
 import com.shaeed.ludo.data.SavedGame
 import com.shaeed.ludo.engine.GameEngine
@@ -101,6 +103,7 @@ class GameViewModel : ViewModel() {
 
         isRolling = true
         viewModelScope.launch {
+            launch { SoundManagerHolder.instance.play(GameSound.DICE_ROLL) }
             delay(400) // Visual rolling delay
             val newState = engine.rollDice(gameState)
             gameState = newState
@@ -146,6 +149,11 @@ class GameViewModel : ViewModel() {
             // Calculate the path from current cell to destination
             val path = engine.pathCalculator.calculatePath(move.token, move.destination)
 
+            // Play move sound
+            if (path.isNotEmpty()) {
+                launch { SoundManagerHolder.instance.play(GameSound.TOKEN_MOVE) }
+            }
+
             // Animate through each cell in the path
             for (cell in path) {
                 tokenAnimation = TokenAnimation(
@@ -159,6 +167,7 @@ class GameViewModel : ViewModel() {
 
             // Animate captured tokens back to base
             if (move.captures.isNotEmpty()) {
+                launch { SoundManagerHolder.instance.play(GameSound.TOKEN_CAPTURE) }
                 // Temporarily update state to show moving token at destination
                 val currentPlayer = gameState.players[gameState.currentPlayerIndex]
                 val updatedTokens = currentPlayer.tokens.map { token ->
@@ -185,6 +194,11 @@ class GameViewModel : ViewModel() {
                 }
             }
 
+            // Play home sound if token reached home
+            if (move.destination is Cell.Home) {
+                launch { SoundManagerHolder.instance.play(GameSound.TOKEN_HOME) }
+            }
+
             // Clear animation and apply the final state
             isAnimating = false
 
@@ -192,6 +206,10 @@ class GameViewModel : ViewModel() {
                 // After using gifted dice, resume from the player after the original roller
                 val resumePlayerIndex = engine.getResumePlayerIndexAfterGiftedDice(stateForEngine)
                 val newState = engine.executeMove(stateForEngine, move)
+
+                if (newState.phase == GamePhase.GAME_OVER) {
+                    launch { SoundManagerHolder.instance.play(GameSound.GAME_WIN) }
+                }
 
                 gameState = if (newState.phase != GamePhase.GAME_OVER) {
                     newState.copy(
@@ -206,7 +224,11 @@ class GameViewModel : ViewModel() {
                 }
                 isUsingGiftedDice = false
             } else {
-                gameState = engine.executeMove(stateForEngine, move)
+                val newState = engine.executeMove(stateForEngine, move)
+                if (newState.phase == GamePhase.GAME_OVER) {
+                    launch { SoundManagerHolder.instance.play(GameSound.GAME_WIN) }
+                }
+                gameState = newState
             }
             checkAndHandleTurn()
         }
@@ -277,6 +299,7 @@ class GameViewModel : ViewModel() {
             if (gameState.phase == GamePhase.WAITING_FOR_ROLL) {
                 // AI rolls dice
                 isRolling = true
+                launch { SoundManagerHolder.instance.play(GameSound.DICE_ROLL) }
                 delay(400)
                 val newState = engine.rollDice(gameState)
                 gameState = newState
