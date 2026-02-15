@@ -135,11 +135,11 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Default Rule Presets",
+                text = "Rule Presets",
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = "Sets the default rules for new games",
+                text = "Sets the rules for new games",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

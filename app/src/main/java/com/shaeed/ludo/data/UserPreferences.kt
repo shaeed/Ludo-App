@@ -58,9 +58,9 @@ class UserPreferences(context: Context) {
 
     fun applyCasualPreset() {
         enterOnSixOnly = false
-        safeZonesEnabled = true
+        safeZonesEnabled = false
         maxConsecutiveSixes = 3
-        passDiceToNextPlayer = true
+        passDiceToNextPlayer = false
         activePreset = "casual"
     }
 
