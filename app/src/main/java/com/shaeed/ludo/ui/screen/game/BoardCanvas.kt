@@ -1,10 +1,16 @@
 package com.shaeed.ludo.ui.screen.game
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -39,6 +45,18 @@ fun BoardCanvas(
     tokenAnimation: TokenAnimation? = null,
     modifier: Modifier = Modifier
 ) {
+    val currentPlayerColor = gameState.players[gameState.currentPlayerIndex].color
+    val pulseTransition = rememberInfiniteTransition(label = "basePulse")
+    val pulseAlpha by pulseTransition.animateFloat(
+        initialValue = 0.15f,
+        targetValue = 0.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 800),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -58,10 +76,10 @@ fun BoardCanvas(
         drawRect(color = Color.White, size = size)
 
         // 2. Base areas
-        drawBaseArea(PlayerColor.RED, 0, 0, cs)
-        drawBaseArea(PlayerColor.GREEN, 0, 9, cs)
-        drawBaseArea(PlayerColor.YELLOW, 9, 9, cs)
-        drawBaseArea(PlayerColor.BLUE, 9, 0, cs)
+        drawBaseArea(PlayerColor.RED, 0, 0, cs, currentPlayerColor == PlayerColor.RED, pulseAlpha)
+        drawBaseArea(PlayerColor.GREEN, 0, 9, cs, currentPlayerColor == PlayerColor.GREEN, pulseAlpha)
+        drawBaseArea(PlayerColor.YELLOW, 9, 9, cs, currentPlayerColor == PlayerColor.YELLOW, pulseAlpha)
+        drawBaseArea(PlayerColor.BLUE, 9, 0, cs, currentPlayerColor == PlayerColor.BLUE, pulseAlpha)
 
         // 3. Center triangles (behind track cells)
         drawCenterTriangles(cs)
@@ -187,7 +205,10 @@ fun BoardCanvas(
 
 // ── Base area: solid color bg → white rounded rect → 4 colored circles ──
 
-private fun DrawScope.drawBaseArea(color: PlayerColor, startRow: Int, startCol: Int, cs: Float) {
+private fun DrawScope.drawBaseArea(
+    color: PlayerColor, startRow: Int, startCol: Int, cs: Float,
+    isActive: Boolean = false, pulseAlpha: Float = 0f
+) {
     val baseColor = colorForPlayer(color)
     val topLeft = Offset(startCol * cs, startRow * cs)
     val areaSize = Size(6 * cs, 6 * cs)
@@ -213,6 +234,15 @@ private fun DrawScope.drawBaseArea(color: PlayerColor, startRow: Int, startCol: 
         val cx = (startCol + relCol) * cs
         val cy = (startRow + relRow) * cs
         drawCircle(color = baseColor, radius = 0.78f * cs, center = Offset(cx, cy))
+    }
+
+    // Pulsing overlay for active player's base
+    if (isActive) {
+        drawRect(
+            color = Color.White.copy(alpha = pulseAlpha),
+            topLeft = topLeft,
+            size = areaSize
+        )
     }
 }
 
