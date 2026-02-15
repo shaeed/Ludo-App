@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,21 +7,22 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Function to get git commit count for version calculation
-fun getCommitCount(): Int {
-    return try {
-        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
-            .directory(rootDir)
-            .redirectErrorStream(true)
-            .start()
-        process.inputStream.bufferedReader().readText().trim().toIntOrNull() ?: 1
-    } catch (e: Exception) {
-        1 // Default to 1 if git is not available
-    }
+// Load keystore properties if available (not checked into git)
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
 
-val majorVersion = 0
-val minorVersion = getCommitCount()
+val commitCount: Int = try {
+    val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+        .directory(rootDir)
+        .redirectErrorStream(true)
+        .start()
+    process.inputStream.bufferedReader().readText().trim().toIntOrNull() ?: 1
+} catch (_: Exception) {
+    1
+}
 
 android {
     namespace = "com.shaeed.ludo"
@@ -29,8 +32,8 @@ android {
         applicationId = "com.shaeed.ludo"
         minSdk = 26
         targetSdk = 36
-        versionCode = minorVersion
-        versionName = "$majorVersion.$minorVersion"
+        versionCode = commitCount
+        versionName = "0.0.$commitCount"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,13 +43,28 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
