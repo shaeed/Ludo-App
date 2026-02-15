@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.shaeed.ludo.data.UserPreferences
 import com.shaeed.ludo.model.GamePhase
 import com.shaeed.ludo.model.GameState
 import com.shaeed.ludo.ui.components.DiceView
@@ -34,6 +35,7 @@ fun GameScreen(
     val isHumanTurn = !currentPlayer.isAI
     val canRoll = state.phase == GamePhase.WAITING_FOR_ROLL && isHumanTurn
     val context = LocalContext.current
+    val shakeEnabled = remember { UserPreferences(context).shakeToRollEnabled }
 
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -80,7 +82,7 @@ fun GameScreen(
 
     // Shake to roll
     DiceController(
-        enabled = canRoll,
+        enabled = canRoll && shakeEnabled,
         onShake = { viewModel.rollDice() }
     )
 

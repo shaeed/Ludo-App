@@ -1,14 +1,18 @@
 package com.shaeed.ludo.ui.screen.setup
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import com.shaeed.ludo.data.UserPreferences
 import com.shaeed.ludo.model.*
 
-class GameSetupViewModel : ViewModel() {
+class GameSetupViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val prefs = UserPreferences(application)
 
     var playerCount by mutableIntStateOf(2)
         private set
@@ -20,13 +24,9 @@ class GameSetupViewModel : ViewModel() {
         PlayerConfig(PlayerColor.BLUE, "Player 4", isAI = true)
     )
 
-    var enterOnSixOnly by mutableStateOf(true)
+    var maxConsecutiveSixes by mutableIntStateOf(prefs.maxConsecutiveSixes)
         private set
-    var safeZonesEnabled by mutableStateOf(true)
-        private set
-    var maxConsecutiveSixes by mutableIntStateOf(3)
-        private set
-    var passDiceToNextPlayer by mutableStateOf(false)
+    var passDiceToNextPlayer by mutableStateOf(prefs.passDiceToNextPlayer)
         private set
     var friendMode by mutableStateOf(GameConfigHolder.current.friendMode)
         private set
@@ -56,8 +56,6 @@ class GameSetupViewModel : ViewModel() {
         }
     }
 
-    fun toggleEnterOnSixOnly() { enterOnSixOnly = !enterOnSixOnly }
-    fun toggleSafeZones() { safeZonesEnabled = !safeZonesEnabled }
     fun updateMaxConsecutiveSixes(value: Int) { maxConsecutiveSixes = value.coerceIn(1, 5) }
     fun togglePassDiceToNextPlayer() { passDiceToNextPlayer = !passDiceToNextPlayer }
     fun toggleFriendMode() { friendMode = !friendMode }
@@ -66,8 +64,8 @@ class GameSetupViewModel : ViewModel() {
         val activePlayers = playerConfigs.take(playerCount)
         return GameConfig(
             playerConfigs = activePlayers,
-            enterOnSixOnly = enterOnSixOnly,
-            safeZonesEnabled = safeZonesEnabled,
+            enterOnSixOnly = prefs.enterOnSixOnly,
+            safeZonesEnabled = prefs.safeZonesEnabled,
             maxConsecutiveSixes = maxConsecutiveSixes,
             passDiceToNextPlayer = passDiceToNextPlayer,
             friendMode = friendMode
