@@ -365,7 +365,9 @@ private fun DrawScope.drawStackedTokens(
         tokens.size <= 3 -> 0.7f
         else -> 0.6f
     }
-    for ((idx, token) in tokens.withIndex()) {
+    // Sort so movable tokens are drawn last (on top)
+    val sorted = tokens.sortedBy { it.movable }
+    for ((idx, token) in sorted.withIndex()) {
         if (idx >= offsets.size) break
         val (ox, oy) = offsets[idx]
         drawToken(row, col, cs, token.color, token.movable, ox * cs, oy * cs, scale,
