@@ -17,5 +17,6 @@ keystore.properties
 *.jks
 *.keystore
 app/debug
+app/release
 .claude/
 nul
