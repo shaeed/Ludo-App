@@ -10,9 +10,17 @@ A classic Ludo board game for Android, built with Kotlin and Jetpack Compose.
   - Enter board on 6 only (or any roll)
   - Safe zones enabled/disabled
   - Maximum consecutive 6s before losing turn
-- **Shake to Roll** - Use your device's accelerometer to roll the dice
+  - Pass unused dice to next player
+- **Rule Presets** - Classic and Casual presets to quickly set up your preferred rules
+- **Friend Mode** - Diagonal allies (Red-Yellow, Green-Blue) can't capture each other in 4-player games
+- **Sound Effects** - PCM-synthesized game sounds for dice rolls, token moves, captures, reaching home, and winning
+- **Shake to Roll** - Use your device's accelerometer to roll the dice (toggleable in settings)
+- **Token Styles** - Choose from 5 visual styles: Classic Cone, Flat Disc, Star, Ring, and Pawn
+- **Save & Resume** - Save your game in progress and continue later
+- **Persistent Settings** - All preferences (sound, shake, token style, rule defaults) are saved across sessions
 - **Material Design 3** - Modern UI with dynamic theming on Android 12+
 - **Dark Mode** - Full support for light and dark themes
+- **100% Ad-Free** - No ads, no tracking, no interruptions
 
 ## Screenshots
 
@@ -61,15 +69,27 @@ On Windows, use `gradlew.bat` instead of `./gradlew`.
 ```
 app/src/main/java/com/shaeed/ludo/
 ├── ai/           # AI strategies (Easy, Medium, Hard)
+├── audio/        # Sound effects (PCM synthesis via AudioTrack)
+├── data/         # Persistence (saved games, user preferences)
 ├── engine/       # Game engine, move validation, rules
 ├── model/        # Data models (GameState, Player, Token, etc.)
 ├── navigation/   # Navigation graph
 ├── sensor/       # Shake detection for dice rolling
 └── ui/
-    ├── components/   # Reusable UI components
-    ├── screen/       # App screens (Home, Setup, Game, Settings)
+    ├── components/   # Reusable UI components (DiceView, TokenPiece, etc.)
+    ├── screen/       # App screens (Home, Setup, Game, Settings, About)
     └── theme/        # Material 3 theming
 ```
+
+## Contributing
+
+Contributions are welcome! Feel free to:
+
+- **Fork** the repository and submit a pull request
+- **Open an issue** to suggest a feature or report a bug
+- **Star** the repo if you enjoy the game
+
+See [Issues](https://github.com/shaeed/Ludo-App/issues) for open tasks and feature requests.
 
 ## License
 
