@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -93,6 +94,7 @@ private fun CreateRoomTab(
     onNavigateToGame: () -> Unit,
 ) {
     val clipboard = LocalClipboardManager.current
+    val code = viewModel.createdRoomCode
 
     Column(
         modifier = Modifier
@@ -101,23 +103,24 @@ private fun CreateRoomTab(
             .padding(top = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        PlayerIdentitySection(viewModel)
-
-        // Player count
-        Text("Players: ${viewModel.playerCount}", fontWeight = FontWeight.Medium)
-        Slider(
-            value = viewModel.playerCount.toFloat(),
-            onValueChange = { viewModel.updatePlayerCount(it.toInt()) },
-            valueRange = 2f..4f,
-            steps = 1,
-        )
-
-        // Rules
-        RulesSection(viewModel)
-
-        // Create / show code
-        val code = viewModel.createdRoomCode
         if (code == null) {
+            // ---- Step 1: configure and create the room ----
+            PlayerIdentitySection(viewModel)
+
+            Text("Number of Players: ${viewModel.playerCount}", fontWeight = FontWeight.Medium)
+            Slider(
+                value = viewModel.playerCount.toFloat(),
+                onValueChange = { viewModel.updatePlayerCount(it.toInt()) },
+                valueRange = 2f..4f,
+                steps = 1,
+            )
+
+            Text(
+                "Game rules from your Settings will apply.",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             Button(
                 onClick = { viewModel.createRoom(onSuccess = {}) },
                 enabled = !viewModel.isLoading,
@@ -128,7 +131,7 @@ private fun CreateRoomTab(
                 else Text("Create Room", fontSize = 16.sp)
             }
         } else {
-            // Room code display
+            // ---- Step 2: share code, then open the lobby ----
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -144,7 +147,7 @@ private fun CreateRoomTab(
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 8.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedButton(onClick = { clipboard.setText(AnnotatedString(code)) }) {
@@ -154,7 +157,7 @@ private fun CreateRoomTab(
             }
 
             Text(
-                "Share this code with friends. Tap Start Game when everyone has joined.",
+                "Share this code with your friends. Once they have joined, tap Open Lobby.",
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -165,7 +168,7 @@ private fun CreateRoomTab(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = MaterialTheme.shapes.large,
             ) {
-                Text("Start Game", fontSize = 16.sp)
+                Text("Open Lobby", fontSize = 16.sp)
             }
         }
 
@@ -203,6 +206,14 @@ private fun JoinRoomTab(
             ),
             modifier = Modifier.fillMaxWidth(),
         )
+
+        if (viewModel.joinCode.length < 6) {
+            Text(
+                "Enter the 6-character code shared by the host.",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         Button(
             onClick = { viewModel.joinRoom(onNavigateToGame) },
@@ -242,47 +253,6 @@ private fun PlayerIdentitySection(viewModel: OnlineSetupViewModel) {
                 label = { Text(color.name) },
             )
         }
-    }
-}
-
-@Composable
-private fun RulesSection(viewModel: OnlineSetupViewModel) {
-    Text("Rules", fontWeight = FontWeight.Medium)
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Max Sixes in a Row: ${viewModel.maxConsecutiveSixes}", fontSize = 14.sp)
-        Row {
-            TextButton(
-                onClick = { viewModel.updateMaxConsecutiveSixes(viewModel.maxConsecutiveSixes - 1) },
-                enabled = viewModel.maxConsecutiveSixes > 1
-            ) { Text("−") }
-            TextButton(
-                onClick = { viewModel.updateMaxConsecutiveSixes(viewModel.maxConsecutiveSixes + 1) },
-                enabled = viewModel.maxConsecutiveSixes < 5
-            ) { Text("+") }
-        }
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Pass dice to next player", fontSize = 14.sp)
-        Switch(checked = viewModel.passDiceToNextPlayer, onCheckedChange = { viewModel.togglePassDice() })
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Friend Mode (RED/YELLOW vs GREEN/BLUE)", fontSize = 14.sp, modifier = Modifier.weight(1f))
-        Switch(checked = viewModel.friendMode, onCheckedChange = { viewModel.toggleFriendMode() })
     }
 }
 
