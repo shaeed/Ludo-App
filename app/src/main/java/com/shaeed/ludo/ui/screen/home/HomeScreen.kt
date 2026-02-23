@@ -12,9 +12,10 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     onPlayClicked: () -> Unit,
+    onPlayOnlineClicked: () -> Unit,
     onSavedGamesClicked: () -> Unit,
     onSettingsClicked: () -> Unit,
-    onAboutClicked: () -> Unit
+    onAboutClicked: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -47,7 +48,19 @@ fun HomeScreen(
                 .height(56.dp),
             shape = MaterialTheme.shapes.large
         ) {
-            Text("Play", fontSize = 18.sp)
+            Text("Play Local", fontSize = 18.sp)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onPlayOnlineClicked,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text("Play Online", fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

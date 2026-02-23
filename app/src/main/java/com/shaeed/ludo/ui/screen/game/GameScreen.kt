@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.shaeed.ludo.data.UserPreferences
 import com.shaeed.ludo.model.GamePhase
 import com.shaeed.ludo.model.GameState
@@ -28,9 +28,9 @@ import com.shaeed.ludo.ui.components.lightColorForPlayer
 @Composable
 fun GameScreen(
     onGameEnd: () -> Unit,
-    viewModel: GameViewModel = viewModel()
+    controller: GameController,
 ) {
-    val state = viewModel.gameState
+    val state = controller.gameState
     val currentPlayer = state.players[state.currentPlayerIndex]
     val isHumanTurn = !currentPlayer.isAI
     val canRoll = state.phase == GamePhase.WAITING_FOR_ROLL && isHumanTurn
@@ -49,7 +49,12 @@ fun GameScreen(
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             title = { Text("End Game?") },
-            text = { Text("Would you like to save your game before exiting?") },
+            text = {
+                Text(
+                    if (controller.canSave) "Would you like to save your game before exiting?"
+                    else "Are you sure you want to exit?"
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -65,15 +70,17 @@ fun GameScreen(
                     TextButton(onClick = { showExitDialog = false }) {
                         Text("Cancel")
                     }
-                    Button(
-                        onClick = {
-                            val players = state.players.joinToString(" vs ") { it.name }
-                            viewModel.saveGame(context, players)
-                            showExitDialog = false
-                            onGameEnd()
+                    if (controller.canSave) {
+                        Button(
+                            onClick = {
+                                val players = state.players.joinToString(" vs ") { it.name }
+                                controller.saveGame(context, players)
+                                showExitDialog = false
+                                onGameEnd()
+                            }
+                        ) {
+                            Text("Save & Exit")
                         }
-                    ) {
-                        Text("Save & Exit")
                     }
                 }
             }
@@ -83,7 +90,7 @@ fun GameScreen(
     // Shake to roll
     DiceController(
         enabled = canRoll && shakeEnabled,
-        onShake = { viewModel.rollDice() }
+        onShake = { controller.rollDice() }
     )
 
     Column(
@@ -101,8 +108,8 @@ fun GameScreen(
             if (state.players.isNotEmpty()) {
                 PlayerDice(
                     playerIndex = 0, state = state,
-                    isRolling = viewModel.isRolling, canRoll = canRoll,
-                    onRoll = { viewModel.rollDice() }
+                    isRolling = controller.isRolling, canRoll = canRoll,
+                    onRoll = { controller.rollDice() }
                 )
                 PlayerPanel(
                     player = state.players[0],
@@ -118,8 +125,8 @@ fun GameScreen(
                 )
                 PlayerDice(
                     playerIndex = 1, state = state,
-                    isRolling = viewModel.isRolling, canRoll = canRoll,
-                    onRoll = { viewModel.rollDice() }
+                    isRolling = controller.isRolling, canRoll = canRoll,
+                    onRoll = { controller.rollDice() }
                 )
             }
         }
@@ -129,10 +136,10 @@ fun GameScreen(
         // Board
         BoardCanvas(
             gameState = state,
-            layout = viewModel.getLayout(),
-            legalMoves = viewModel.legalMoves,
-            onCellTapped = { row, col -> viewModel.onCellTapped(row, col) },
-            tokenAnimation = viewModel.tokenAnimation,
+            layout = controller.getLayout(),
+            legalMoves = controller.legalMoves,
+            onCellTapped = { row, col -> controller.onCellTapped(row, col) },
+            tokenAnimation = controller.tokenAnimation,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -149,8 +156,8 @@ fun GameScreen(
                 val leftIdx = state.players.size - 1
                 PlayerDice(
                     playerIndex = leftIdx, state = state,
-                    isRolling = viewModel.isRolling, canRoll = canRoll,
-                    onRoll = { viewModel.rollDice() }
+                    isRolling = controller.isRolling, canRoll = canRoll,
+                    onRoll = { controller.rollDice() }
                 )
                 PlayerPanel(
                     player = state.players[leftIdx],
@@ -167,8 +174,8 @@ fun GameScreen(
                     )
                     PlayerDice(
                         playerIndex = 2, state = state,
-                        isRolling = viewModel.isRolling, canRoll = canRoll,
-                        onRoll = { viewModel.rollDice() }
+                        isRolling = controller.isRolling, canRoll = canRoll,
+                        onRoll = { controller.rollDice() }
                     )
                 }
             }
@@ -178,7 +185,7 @@ fun GameScreen(
         // Turn status
         val playerColor = colorForPlayer(currentPlayer.color)
         val playerBg = lightColorForPlayer(currentPlayer.color).copy(alpha = 0.25f)
-        val showBonus = state.giftedDice != null || viewModel.isUsingGiftedDice
+        val showBonus = state.giftedDice != null || controller.isUsingGiftedDice
 
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -203,9 +210,9 @@ fun GameScreen(
                     )
                     Text(
                         text = when {
-                            viewModel.isAnimating -> "Moving..."
+                            controller.isAnimating -> "Moving..."
                             state.giftedDice != null -> if (isHumanTurn) "Use the bonus dice!" else "AI using bonus..."
-                            viewModel.isUsingGiftedDice -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
+                            controller.isUsingGiftedDice -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
                             state.phase == GamePhase.WAITING_FOR_ROLL && !shakeEnabled -> if (isHumanTurn) "Tap dice" else "AI is thinking..."
                             state.phase == GamePhase.WAITING_FOR_ROLL && shakeEnabled -> if (isHumanTurn) "Tap dice or shake to roll" else "AI is thinking..."
                             state.phase == GamePhase.WAITING_FOR_MOVE -> if (isHumanTurn) "Tap a token to move" else "AI is moving..."
@@ -219,7 +226,7 @@ fun GameScreen(
                     )
                 }
 
-                if (viewModel.friendMode) {
+                if (controller.friendMode) {
                     Surface(
                         color = MaterialTheme.colorScheme.tertiary,
                         shape = MaterialTheme.shapes.small
