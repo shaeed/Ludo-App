@@ -33,17 +33,20 @@ class GameEngine(
         )
     }
 
-    fun rollDice(state: GameState): GameState {
-        val value = (1..6).random()
+    fun rollDice(state: GameState): GameState = applyDiceValue(state, (1..6).random())
+
+    /**
+     * Apply a known dice value to the game state. Used directly by online multiplayer
+     * when a remote player's roll is received over the network instead of generated locally.
+     */
+    fun applyDiceValue(state: GameState, value: Int): GameState {
         val dice = DiceResult(value)
         val newConsecutiveSixes = if (value == 6) state.consecutiveSixes + 1 else 0
 
-        // Store dice value in the current player
         val updatedPlayers = state.players.mapIndexed { index, player ->
             if (index == state.currentPlayerIndex) player.copy(diceValue = value) else player
         }
 
-        // Check for consecutive sixes forfeit
         if (ruleSet.shouldForfeitForConsecutiveSixes(newConsecutiveSixes, config.maxConsecutiveSixes)) {
             return advanceToNextPlayer(state.copy(players = updatedPlayers, dice = dice, consecutiveSixes = 0))
         }
@@ -55,13 +58,11 @@ class GameEngine(
             consecutiveSixes = newConsecutiveSixes
         )
 
-        // Auto-skip if no legal moves
         val legalMoves = moveValidator.computeLegalMoves(newState)
         if (legalMoves.isEmpty()) {
             return if (value == 6 && ruleSet.grantsExtraTurn(value, state.consecutiveSixes, config.maxConsecutiveSixes)) {
                 newState.copy(phase = GamePhase.WAITING_FOR_ROLL)
             } else if (config.passDiceToNextPlayer) {
-                // Pass the dice to next player as a gifted dice
                 advanceToNextPlayerWithGiftedDice(newState, dice)
             } else {
                 advanceToNextPlayer(newState)

@@ -27,32 +27,34 @@ object RestoredGameHolder {
     var pending: SavedGame? = null
 }
 
-class GameViewModel : ViewModel() {
+class GameViewModel : ViewModel(), GameController {
 
     private val layout: BoardLayout = StandardBoardLayout()
     private val config: GameConfig
     private val engine: GameEngine
     private var currentSaveId: String? = null
 
-    var gameState by mutableStateOf<GameState>(
+    override var gameState by mutableStateOf<GameState>(
         GameState(emptyList(), 0, null, GamePhase.WAITING_FOR_ROLL, null)
     )
         private set
 
-    var legalMoves by mutableStateOf<List<Move>>(emptyList())
+    override var legalMoves by mutableStateOf<List<Move>>(emptyList())
         private set
 
-    var isRolling by mutableStateOf(false)
+    override var isRolling by mutableStateOf(false)
         private set
 
-    var tokenAnimation by mutableStateOf<TokenAnimation?>(null)
+    override var tokenAnimation by mutableStateOf<TokenAnimation?>(null)
         private set
 
-    var isAnimating by mutableStateOf(false)
+    override var isAnimating by mutableStateOf(false)
         private set
 
-    var isUsingGiftedDice by mutableStateOf(false)
+    override var isUsingGiftedDice by mutableStateOf(false)
         private set
+
+    override val canSave: Boolean = true
 
     init {
         val restored = RestoredGameHolder.pending
@@ -71,11 +73,11 @@ class GameViewModel : ViewModel() {
         checkAndHandleTurn()
     }
 
-    val friendMode: Boolean get() = config.friendMode
+    override val friendMode: Boolean get() = config.friendMode
 
-    fun getLayout(): BoardLayout = layout
+    override fun getLayout(): BoardLayout = layout
 
-    fun saveGame(context: Context, name: String): SavedGame {
+    override fun saveGame(context: Context, name: String): SavedGame {
         val repo = GameRepository(context)
         val stateToSave = gameState.copy(
             phase = GamePhase.WAITING_FOR_ROLL,
@@ -94,7 +96,7 @@ class GameViewModel : ViewModel() {
         return saved
     }
 
-    fun rollDice() {
+    override fun rollDice() {
         if (isRolling) return
         if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_ROLL) return
@@ -125,7 +127,7 @@ class GameViewModel : ViewModel() {
         }
     }
 
-    fun onCellTapped(row: Int, col: Int) {
+    override fun onCellTapped(row: Int, col: Int) {
         if (isAnimating) return
         if (gameState.phase != GamePhase.WAITING_FOR_MOVE) return
         val currentPlayer = gameState.players[gameState.currentPlayerIndex]

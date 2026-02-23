@@ -2,13 +2,17 @@ package com.shaeed.ludo.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.shaeed.ludo.ui.screen.about.AboutScreen
 import com.shaeed.ludo.ui.screen.game.GameScreen
+import com.shaeed.ludo.ui.screen.game.GameViewModel
 import com.shaeed.ludo.ui.screen.game.RestoredGameHolder
 import com.shaeed.ludo.ui.screen.home.HomeScreen
+import com.shaeed.ludo.ui.screen.online.OnlineGameScreen
+import com.shaeed.ludo.ui.screen.online.OnlineSetupScreen
 import com.shaeed.ludo.ui.screen.savedgames.SavedGamesScreen
 import com.shaeed.ludo.ui.screen.settings.SettingsScreen
 import com.shaeed.ludo.ui.screen.setup.GameSetupScreen
@@ -19,6 +23,7 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
         composable(Screen.Home.route) {
             HomeScreen(
                 onPlayClicked = { navController.navigate(Screen.GameSetup.route) },
+                onPlayOnlineClicked = { navController.navigate(Screen.OnlineSetup.route) },
                 onSavedGamesClicked = { navController.navigate(Screen.SavedGames.route) },
                 onSettingsClicked = { navController.navigate(Screen.Settings.route) },
                 onAboutClicked = { navController.navigate(Screen.About.route) }
@@ -35,7 +40,28 @@ fun LudoNavGraph(navController: NavHostController, modifier: Modifier = Modifier
             )
         }
         composable(Screen.Game.route) {
+            val viewModel: GameViewModel = viewModel()
             GameScreen(
+                controller = viewModel,
+                onGameEnd = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Screen.OnlineSetup.route) {
+            OnlineSetupScreen(
+                onNavigateToGame = {
+                    navController.navigate(Screen.OnlineGame.route) {
+                        popUpTo(Screen.Home.route)
+                    }
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.OnlineGame.route) {
+            OnlineGameScreen(
                 onGameEnd = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
